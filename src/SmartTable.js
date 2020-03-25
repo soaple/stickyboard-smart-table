@@ -3,6 +3,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+import ReactPaginate from 'react-paginate';
 import QueryManager from './QueryManager';
 import {
     Table,
@@ -44,7 +45,8 @@ class SmartTable extends React.Component {
             rows: [],
             // Table Pagination
             rowsPerPage: 10,
-            page: 1,
+            totalPageCount: 10,
+            currentPage: 0,     // Page number starts with 0
         };
     }
 
@@ -59,12 +61,16 @@ class SmartTable extends React.Component {
     }
 
     readData = async () => {
-        const { rows, rowsPerPage } = this.state;
+        const { rows, rowsPerPage, currentPage } = this.state;
         const { columns, queryName } = this.props;
 
+        // prettier-ignore
         const result = await QueryManager.query(`
             {
-                ${queryName.readItems}(offset: ${rows.length}, limit: ${rowsPerPage}) {
+                ${queryName.readItems}(
+                    offset: ${rowsPerPage * currentPage},
+                    limit: ${rowsPerPage}
+                ) {
                     ${columns.map((column) => { return column.name }).join('\n')}
                 }
             }`);
@@ -74,12 +80,21 @@ class SmartTable extends React.Component {
         });
     };
 
+    onClickPage = (data) => {
+        let selectedPage = data.selected;
+
+        this.setState({
+            currentPage: selectedPage,
+        }, this.readData);
+    };
+
     render() {
         const {
             headerHeight,
             headerLabelDict,
             rows,
             rowsPerPage,
+            totalPageCount,
             page,
         } = this.state;
         const { title } = this.props;
@@ -128,7 +143,20 @@ class SmartTable extends React.Component {
                 </TableBody>
 
                 {/* Table Footer */}
-                <TableFooter></TableFooter>
+                <TableFooter>
+                    <ReactPaginate
+                        previousLabel={'previous'}
+                        nextLabel={'next'}
+                        breakLabel={'...'}
+                        pageCount={totalPageCount}
+                        marginPagesDisplayed={2}
+                        pageRangeDisplayed={5}
+                        onPageChange={this.onClickPage}
+                        containerClassName={'pagination'}
+                        subContainerClassName={'pages pagination'}
+                        activeClassName={'active'}
+                    />
+                </TableFooter>
             </Table>
         );
     }
@@ -136,17 +164,19 @@ class SmartTable extends React.Component {
 
 SmartTable.propTypes = {
     titie: PropTypes.string,
-    columns: PropTypes.arrayOf(PropTypes.shape({
-        name: PropTypes.string.isRequired,
-        label: PropTypes.string,
-    })),
+    columns: PropTypes.arrayOf(
+        PropTypes.shape({
+            name: PropTypes.string.isRequired,
+            label: PropTypes.string,
+        })
+    ),
     queryName: PropTypes.shape({
         create: PropTypes.string.isRequired,
         readItems: PropTypes.string.isRequired,
         read: PropTypes.string.isRequired,
         update: PropTypes.string.isRequired,
         delete: PropTypes.string.isRequired,
-    })
+    }),
 };
 
 export default SmartTable;
