@@ -3,7 +3,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import ReactPaginate from 'react-paginate';
 import QueryManager from './QueryManager';
 import {
     Table,
@@ -17,6 +16,7 @@ import {
     TableData,
     TableFooter,
 } from './Table';
+import TablePagination from './TablePagination';
 
 const Wrapper = styled.div``;
 
@@ -42,11 +42,11 @@ class SmartTable extends React.Component {
             headerHeight: 0,
             headerLabelDict: headerLabelDict,
             // Data
+            count: 0,
             rows: [],
-            // Table Pagination
+            // Table pagination
             rowsPerPage: 10,
-            totalPageCount: 10,
-            currentPage: 0,     // Page number starts with 0
+            currentPage: 1,
         };
     }
 
@@ -68,39 +68,46 @@ class SmartTable extends React.Component {
         const result = await QueryManager.query(`
             {
                 ${queryName.readItems}(
-                    offset: ${rowsPerPage * currentPage},
+                    offset: ${rowsPerPage * (currentPage - 1)},
                     limit: ${rowsPerPage}
                 ) {
-                    ${columns.map((column) => { return column.name }).join('\n')}
+                    count
+                    rows {
+                        ${columns.map((column) => { return column.name }).join('\n')}
+                    }
                 }
             }`);
 
         this.setState({
-            rows: result,
+            count: result.count,
+            rows: result.rows,
         });
     };
 
-    onClickPage = (data) => {
-        let selectedPage = data.selected;
-
-        this.setState({
-            currentPage: selectedPage,
-        }, this.readData);
+    onPageChange = (page) => {
+        this.setState(
+            {
+                currentPage: page,
+            },
+            this.readData
+        );
     };
 
     render() {
         const {
             headerHeight,
             headerLabelDict,
+            // Data
+            count,
             rows,
+            // Table pagination
             rowsPerPage,
-            totalPageCount,
-            page,
+            currentPage,
         } = this.state;
         const { title } = this.props;
 
-        const totalPage = Math.ceil(rows.length / rowsPerPage);
-        const offset = Math.ceil((page - 1) * rowsPerPage);
+        const totalPageCount = Math.ceil(count / rowsPerPage);
+        const offset = Math.ceil((currentPage - 1) * rowsPerPage);
         const emptyRows = rowsPerPage - rows.length;
 
         return (
@@ -144,17 +151,11 @@ class SmartTable extends React.Component {
 
                 {/* Table Footer */}
                 <TableFooter>
-                    <ReactPaginate
-                        previousLabel={'previous'}
-                        nextLabel={'next'}
-                        breakLabel={'...'}
-                        pageCount={totalPageCount}
-                        marginPagesDisplayed={2}
-                        pageRangeDisplayed={5}
-                        onPageChange={this.onClickPage}
-                        containerClassName={'pagination'}
-                        subContainerClassName={'pages pagination'}
-                        activeClassName={'active'}
+                    <TablePagination
+                        totalPage={totalPageCount}
+                        currentPage={currentPage}
+                        rowsPerPage={rowsPerPage}
+                        onPageChange={this.onPageChange}
                     />
                 </TableFooter>
             </Table>
