@@ -23,6 +23,9 @@ class SmartTable extends React.Component {
     constructor(props) {
         super(props);
 
+        this.tableHeader = React.createRef();
+
+        // Initialize GraphQL QueryManager
         const endpoint = props.endpoint || `${window.location.origin}/graphql`;
         QueryManager.initialize(endpoint);
 
@@ -35,6 +38,7 @@ class SmartTable extends React.Component {
         });
 
         this.state = {
+            headerHeight: 0,
             headerLabelDict: headerLabelDict,
             // Data
             rows: [],
@@ -45,6 +49,12 @@ class SmartTable extends React.Component {
     }
 
     componentDidMount() {
+        if (this.tableHeader.current) {
+            this.setState({
+                headerHeight: this.tableHeader.current.offsetHeight,
+            });
+        }
+
         this.readData();
     }
 
@@ -65,7 +75,13 @@ class SmartTable extends React.Component {
     };
 
     render() {
-        const { headerLabelDict, rows, rowsPerPage, page } = this.state;
+        const {
+            headerHeight,
+            headerLabelDict,
+            rows,
+            rowsPerPage,
+            page,
+        } = this.state;
         const { title } = this.props;
 
         const totalPage = Math.ceil(rows.length / rowsPerPage);
@@ -80,7 +96,7 @@ class SmartTable extends React.Component {
                 </TableToolbar>
 
                 {/* Table Header */}
-                <TableHeader>
+                <TableHeader ref={this.tableHeader}>
                     {rows.length > 0 &&
                         Object.keys(rows[0]).map((key, index) => {
                             return (
@@ -92,7 +108,7 @@ class SmartTable extends React.Component {
                 </TableHeader>
 
                 {/* Table Body */}
-                <TableBody>
+                <TableBody headerHeight={headerHeight}>
                     {rows.map((item, index) => {
                         return (
                             <TableRow
