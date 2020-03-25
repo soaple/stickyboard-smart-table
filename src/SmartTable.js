@@ -118,6 +118,19 @@ class SmartTable extends React.Component {
     }
 }
 
-SmartTable.propTypes = {};
+SmartTable.propTypes = {
+    titie: PropTypes.string,
+    columns: PropTypes.arrayOf(PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        label: PropTypes.string,
+    })),
+    queryName: PropTypes.shape({
+        create: PropTypes.string.isRequired,
+        readItems: PropTypes.string.isRequired,
+        read: PropTypes.string.isRequired,
+        update: PropTypes.string.isRequired,
+        delete: PropTypes.string.isRequired,
+    })
+};
 
 export default SmartTable;
