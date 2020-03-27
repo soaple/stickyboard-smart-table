@@ -65,6 +65,7 @@ export const TableBody = styled.tbody`
 `;
 
 export const TableRow = styled.tr`
+    height: 10%;
     &:not(:last-child) {
         border-bottom: 1px solid #dddddd;
     }
@@ -73,6 +74,10 @@ export const TableRow = styled.tr`
     :hover {
         background-color: #eeeeee;
     }
+`;
+
+export const TableRowEmpty = styled.div`
+    flex: 1;
 `;
 
 export const TableData = styled.td`

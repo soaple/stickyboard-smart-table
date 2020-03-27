@@ -15,6 +15,7 @@ import {
     TableHeaderData,
     TableBody,
     TableRow,
+    TableRowEmpty,
     TableData,
     TableFooter,
 } from './Table';
@@ -111,6 +112,7 @@ class SmartTable extends React.Component {
 
         const totalPageCount = Math.ceil(count / rowsPerPage);
         const offset = Math.ceil((currentPage - 1) * rowsPerPage);
+        const emptyRows = rowsPerPage - rows.length;
 
         return (
             <TableWrapper>
@@ -141,8 +143,7 @@ class SmartTable extends React.Component {
                         <TableBody>
                             {rows.map((item, index) => {
                                 return (
-                                    <TableRow
-                                        key={index}>
+                                    <TableRow key={index}>
                                         {Object.keys(item).map((key, index) => {
                                             return (
                                                 <TableData key={index}>
@@ -153,6 +154,8 @@ class SmartTable extends React.Component {
                                     </TableRow>
                                 );
                             })}
+
+                            {emptyRows > 0 && <TableRowEmpty />}
                         </TableBody>
                     </Table>
                 </TableContent>
