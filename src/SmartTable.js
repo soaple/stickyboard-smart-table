@@ -18,10 +18,19 @@ import {
     TableRowEmpty,
     TableData,
     TableFooter,
-} from './Table';
-import TablePagination from './TablePagination';
+} from './table/Table';
+import TablePagination from './table/TablePagination';
+import Dialog from './dialog/Dialog';
+import { CreateIcon, DeleteIcon } from './IconSet';
 
 const Wrapper = styled.div``;
+
+const ClickableContainer = styled.div`
+    margin: 0 16px;
+    :hover {
+        cursor: pointer;
+    }
+`;
 
 class SmartTable extends React.Component {
     constructor(props) {
@@ -50,6 +59,8 @@ class SmartTable extends React.Component {
             // Table pagination
             rowsPerPage: 10,
             currentPage: 1,
+            // Dialog
+            showCreateDialog: false,
         };
     }
 
@@ -96,6 +107,18 @@ class SmartTable extends React.Component {
         );
     };
 
+    showCreateDialog = () => {
+        this.setState({
+            showCreateDialog: true,
+        });
+    };
+
+    hideCreateDialog = () => {
+        this.setState({
+            showCreateDialog: false,
+        });
+    };
+
     render() {
         const {
             headerHeight,
@@ -106,6 +129,8 @@ class SmartTable extends React.Component {
             // Table pagination
             rowsPerPage,
             currentPage,
+            // Dialog
+            showCreateDialog,
         } = this.state;
         const { title } = this.props;
 
@@ -118,6 +143,17 @@ class SmartTable extends React.Component {
                 {/* Table Toolbar */}
                 <TableToolbar>
                     <TableToolbarTitle>{title}</TableToolbarTitle>
+
+                    <ClickableContainer onClick={this.showCreateDialog}>
+                        <CreateIcon width={24} height={24} fill={'#000000'} />
+                    </ClickableContainer>
+
+                    <ClickableContainer
+                        onClick={() => {
+                            alert('Delete');
+                        }}>
+                        <DeleteIcon width={24} height={24} fill={'#000000'} />
+                    </ClickableContainer>
                 </TableToolbar>
 
                 {/* Table Content (Horizontally scrollable) */}
@@ -168,6 +204,14 @@ class SmartTable extends React.Component {
                         onPageChange={this.onPageChange}
                     />
                 </TableFooter>
+
+                {/* Dialog */}
+                {showCreateDialog && (
+                    <Dialog
+                        title={'Create Item'}
+                        onClose={this.hideCreateDialog}
+                    />
+                )}
             </TableWrapper>
         );
     }
