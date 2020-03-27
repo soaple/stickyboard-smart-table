@@ -5,13 +5,15 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import QueryManager from './QueryManager';
 import {
-    Table,
+    TableWrapper,
     TableToolbar,
     TableToolbarTitle,
-    TableHeader,
+    TableContent,
+    Table,
     TableHead,
+    TableHeader,
+    TableHeaderData,
     TableBody,
-    TableRowEmpty,
     TableRow,
     TableData,
     TableFooter,
@@ -80,7 +82,8 @@ class SmartTable extends React.Component {
 
         this.setState({
             count: result.count,
-            rows: result.rows,
+            // rows: result.rows,
+            rows: currentPage === 1 ? result.rows : result.rows.slice(0, 4),
         });
     };
 
@@ -108,46 +111,51 @@ class SmartTable extends React.Component {
 
         const totalPageCount = Math.ceil(count / rowsPerPage);
         const offset = Math.ceil((currentPage - 1) * rowsPerPage);
-        const emptyRows = rowsPerPage - rows.length;
 
         return (
-            <Table>
+            <TableWrapper>
                 {/* Table Toolbar */}
                 <TableToolbar>
                     <TableToolbarTitle>{title}</TableToolbarTitle>
                 </TableToolbar>
 
-                {/* Table Header */}
-                <TableHeader ref={this.tableHeader}>
-                    {rows.length > 0 &&
-                        Object.keys(rows[0]).map((key, index) => {
-                            return (
-                                <TableHead key={index}>
-                                    {headerLabelDict[key] || key.toUpperCase()}
-                                </TableHead>
-                            );
-                        })}
-                </TableHeader>
+                {/* Table Content (Horizontally scrollable) */}
+                <TableContent>
+                    <Table>
+                        {/* Table Header */}
+                        <TableHead>
+                            <TableHeader>
+                                {rows.length > 0 &&
+                                    Object.keys(rows[0]).map((key, index) => {
+                                        return (
+                                            <TableHeaderData key={index}>
+                                                {headerLabelDict[key] ||
+                                                    key.toUpperCase()}
+                                            </TableHeaderData>
+                                        );
+                                    })}
+                            </TableHeader>
+                        </TableHead>
 
-                {/* Table Body */}
-                <TableBody headerHeight={headerHeight}>
-                    {rows.map((item, index) => {
-                        return (
-                            <TableRow
-                                key={index}
-                                showBorderBottom={index < rows.length - 1}>
-                                {Object.keys(item).map((key, index) => {
-                                    return (
-                                        <TableData key={index}>
-                                            {item[key]}
-                                        </TableData>
-                                    );
-                                })}
-                            </TableRow>
-                        );
-                    })}
-                    {emptyRows > 0 && <TableRowEmpty numOfRows={emptyRows} />}
-                </TableBody>
+                        {/* Table Body */}
+                        <TableBody>
+                            {rows.map((item, index) => {
+                                return (
+                                    <TableRow
+                                        key={index}>
+                                        {Object.keys(item).map((key, index) => {
+                                            return (
+                                                <TableData key={index}>
+                                                    {item[key]}
+                                                </TableData>
+                                            );
+                                        })}
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </TableContent>
 
                 {/* Table Footer */}
                 <TableFooter>
@@ -158,7 +166,7 @@ class SmartTable extends React.Component {
                         onPageChange={this.onPageChange}
                     />
                 </TableFooter>
-            </Table>
+            </TableWrapper>
         );
     }
 }

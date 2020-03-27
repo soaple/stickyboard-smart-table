@@ -4,20 +4,17 @@ import React from 'react';
 import styled from 'styled-components';
 
 const TOOLBAR_HEIGHT = 56;
-const HEADER_MIN_HEIGHT = 56;
+const HEADER_HEIGHT = 56;
 const FOOTER_HEIGHT = 56;
 
-export const Table = styled.div`
+export const TableWrapper = styled.div`
     width: 100%;
     height: 100%;
     position: relative;
 `;
 
 export const TableToolbar = styled.div`
-    width: 100%;
     height: ${TOOLBAR_HEIGHT}px;
-    /* position: absolute;
-    top: 0; */
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -28,80 +25,67 @@ export const TableToolbarTitle = styled.div`
     flex: 1;
     font-size: 18px;
     font-weight: 600;
-    color: ${props => props.color || '#000000'};
+    color: ${(props) => props.color || '#000000'};
 `;
 
-export const TableHeader = styled.div`
+export const TableContent = styled.div`
     width: 100%;
-    /* position: absolute;
-    top: ${TOOLBAR_HEIGHT}px; */
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
+    height: calc(100% - ${TOOLBAR_HEIGHT + FOOTER_HEIGHT}px);
+    overflow-x: auto;
+`;
+
+export const Table = styled.table`
+    width: 100%;
+    height: 100%;
+`;
+
+export const TableHead = styled.thead``;
+
+export const TableHeader = styled.tr`
+    height: ${HEADER_HEIGHT}px;
     border-bottom: 1px solid #444444;
 `;
 
-export const TableHead = styled.div`
-    flex: 1;
-    flex-shrink: 0;
-    flex-basis: 100px;
+export const TableHeaderData = styled.th`
+    padding: 8px 12px;
+    position: sticky;
+    top: 0;
+    background-color: white;
+    overflow: hidden;
+    white-space: nowrap;
     font-size: 18px;
     font-weight: 500;
     text-align: center;
     user-select: none;
-    color: ${props => props.color || '#444444'};
+    color: ${(props) => props.color || '#444444'};
 `;
 
-export const TableBody = styled.div`
-    width: 100%;
-    height: calc(100% - ${props =>
-        props.headerHeight + TOOLBAR_HEIGHT + FOOTER_HEIGHT}px);
-    /* position: absolute;
-    top: ${TOOLBAR_HEIGHT + HEADER_MIN_HEIGHT}px;
-    bottom: ${FOOTER_HEIGHT}px; */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    overflow: scroll;
-    background-color: #ffffff;
+export const TableBody = styled.tbody`
+    height: calc(100% - ${HEADER_HEIGHT}px);
 `;
 
-
-export const TableRow = styled.div`
-    flex: 1;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
-    ${props => props.showBorderBottom && `
+export const TableRow = styled.tr`
+    &:not(:last-child) {
         border-bottom: 1px solid #dddddd;
-    `};
+    }
+    -webkit-transition: -webkit-background-color 0.1s ease-in-out;
+    transition: background-color 0.1s ease-in-out;
+    :hover {
+        background-color: #eeeeee;
+    }
 `;
 
-export const TableRowEmpty = styled.div`
-    flex: ${props => props.numOfRows};
-`;
-
-export const TableData = styled.div`
-    flex: 1;
-    flex-shrink: 0;
-    flex-basis: 100px;
-    font-size: 14px;
-    text-align: center;
+export const TableData = styled.td`
+    padding: 8px 12px;
     overflow: hidden;
-    text-overflow: ellipsis;
-    font-weight: ${props => props.fontWeight || 400};
-    color: ${props => props.color || '#000000'};
+    white-space: nowrap;
+    text-align: center;
+    font-weight: ${(props) => props.fontWeight || 400};
+    color: ${(props) => props.color || '#000000'};
 `;
 
 export const TableFooter = styled.div`
-    width: 100%;
     height: ${FOOTER_HEIGHT}px;
-    /* position: absolute;
-    bottom: 0; */
     display: flex;
     flex-direction: row;
     justify-content: space-around;
