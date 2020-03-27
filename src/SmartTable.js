@@ -83,8 +83,7 @@ class SmartTable extends React.Component {
 
         this.setState({
             count: result.count,
-            // rows: result.rows,
-            rows: currentPage === 1 ? result.rows : result.rows.slice(0, 4),
+            rows: result.rows,
         });
     };
 
