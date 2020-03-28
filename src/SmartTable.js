@@ -74,6 +74,30 @@ class SmartTable extends React.Component {
         this.readData();
     }
 
+    createData = async (valueDict) => {
+        const { columns, queryName } = this.props;
+
+        // prettier-ignore
+        const result = await QueryManager.mutate(`
+            mutation {
+                ${queryName.create}(
+                    ${Object.keys(valueDict).map((key) => {
+                        return `${key}: "${valueDict[key]}"`;
+                    }).join('\n')}
+                ) {
+                    ${columns.map((column) => {
+                        if (column.show) {
+                            return column.name;
+                        }
+                    }).join('\n')}
+                }
+            }`);
+
+        if (result) {
+            this.hideCreateDialog();
+        }
+    }
+
     readData = async () => {
         const { rows, rowsPerPage, currentPage } = this.state;
         const { columns, queryName } = this.props;
@@ -87,7 +111,11 @@ class SmartTable extends React.Component {
                 ) {
                     count
                     rows {
-                        ${columns.map((column) => { return column.name }).join('\n')}
+                        ${columns.map((column) => {
+                            if (column.show) {
+                                return column.name;
+                            }
+                        }).join('\n')}
                     }
                 }
             }`);
@@ -132,7 +160,7 @@ class SmartTable extends React.Component {
             // Dialog
             showCreateDialog,
         } = this.state;
-        const { title } = this.props;
+        const { title, columns } = this.props;
 
         const totalPageCount = Math.ceil(count / rowsPerPage);
         const offset = Math.ceil((currentPage - 1) * rowsPerPage);
@@ -205,11 +233,13 @@ class SmartTable extends React.Component {
                     />
                 </TableFooter>
 
-                {/* Dialog */}
+                {/* Create Dialog */}
                 {showCreateDialog && (
                     <Dialog
-                        title={'Create Item'}
-                        onClose={this.hideCreateDialog}
+                        title={`Create ${title}`}
+                        columns={columns.filter((column) => column.required)}
+                        onNegativeBtnClick={this.hideCreateDialog}
+                        onPositiveBtnClick={this.createData}
                     />
                 )}
             </TableWrapper>

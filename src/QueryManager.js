@@ -19,7 +19,24 @@ const runQuery = async (query) => {
 
     // Extract result data from the result
     const resultData = Object.values(result.data)[0];
-    
+
+    return resultData;
+};
+
+const runMutation = async (mutation) => {
+    if (!apolloClient) {
+        throw new Error("ApolloClient didn't initialized.");
+    }
+
+    const result = await apolloClient.mutate({
+        mutation: gql`
+            ${mutation}
+        `,
+    });
+
+    // Extract result data from the result
+    const resultData = Object.values(result.data)[0];
+
     return resultData;
 };
 
@@ -36,6 +53,10 @@ const QueryManager = {
     query: async (query) => {
         return await runQuery(query);
     },
+
+    mutate: async (mutation) => {
+        return await runMutation(mutation);
+    }
 };
 
 export default QueryManager;

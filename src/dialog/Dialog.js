@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 
 const Wrapper = styled.div`
@@ -14,6 +14,7 @@ const Wrapper = styled.div`
     background-color: rgba(0, 0, 0, 0.5);
     -webkit-transition: -webkit-background-color 0.1s ease-in-out;
     transition: background-color 0.1s ease-in-out;
+    border-radius: 8px;
 `;
 
 const DialogWrapper = styled.div`
@@ -26,7 +27,7 @@ const DialogWrapper = styled.div`
 
 const Title = styled.div`
     padding: 16px;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: bold;
     color: #000000;
 `;
@@ -59,10 +60,14 @@ const InputContainer = styled.div`
 
 const InputName = styled.div`
     flex: 1;
+    font-size: 16px;
+    color: #000000;
 `;
 
 const InputValue = styled.input`
     flex: 2;
+    font-size: 16px;
+    color: #000000;
 `;
 
 const Footer = styled.div`
@@ -75,7 +80,7 @@ const Footer = styled.div`
 
 const NegativeButton = styled.div`
     padding: 8px 16px;
-    font-size: 20px;
+    font-size: 16px;
     color: #000000;
     background-color: #ffffff;
     :hover {
@@ -91,7 +96,7 @@ const NegativeButton = styled.div`
 const PositiveButton = styled.div`
     margin-left: 16px;
     padding: 8px 16px;
-    font-size: 20px;
+    font-size: 16px;
     color: #000000;
     background-color: #ffffff;
     :hover {
@@ -105,7 +110,13 @@ const PositiveButton = styled.div`
 `;
 
 function Dialog(props) {
-    const { title, onClose } = props;
+    const { title, columns, onNegativeBtnClick, onPositiveBtnClick } = props;
+
+    const initialValueDict = columns.reduce((acc, column) => {
+        acc[column.name] = '';
+        return acc;
+    }, {});
+    const [ valueDict, setValueDict ] = useState(initialValueDict);
 
     return (
         <Wrapper>
@@ -115,27 +126,35 @@ function Dialog(props) {
                 <Divider />
 
                 <Content>
-                    <InputContainer>
-                        <InputName>Name</InputName>
-                        <InputValue value="" />
-                    </InputContainer>
-
-                    <InputContainer>
-                        <InputName>Name</InputName>
-                        <InputValue value="" />
-                    </InputContainer>
-
-                    <InputContainer>
-                        <InputName>Name</InputName>
-                        <InputValue value="" />
-                    </InputContainer>
+                    {columns.map((column, index) => {
+                        return (
+                            <InputContainer
+                                key={column.name}>
+                                <InputName>{column.name}</InputName>
+                                <InputValue
+                                    value={valueDict[column.name]}
+                                    onChange={(event) => {
+                                        setValueDict({
+                                            ...valueDict,
+                                            [column.name]: event.target.value,
+                                        });
+                                    }} />
+                            </InputContainer>
+                        )
+                    })}
                 </Content>
 
                 <Divider />
 
                 <Footer>
-                    <NegativeButton onClick={onClose}>Cancel</NegativeButton>
-                    <PositiveButton onClick={() => {}}>Create</PositiveButton>
+                    <NegativeButton onClick={onNegativeBtnClick}>
+                        Cancel
+                    </NegativeButton>
+                    <PositiveButton onClick={() => {
+                        onPositiveBtnClick(valueDict);
+                    }}>
+                        Create
+                    </PositiveButton>
                 </Footer>
             </DialogWrapper>
         </Wrapper>
@@ -143,3 +162,4 @@ function Dialog(props) {
 }
 
 export default Dialog;
+[]
