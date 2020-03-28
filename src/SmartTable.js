@@ -77,24 +77,36 @@ class SmartTable extends React.Component {
     createData = async (valueDict) => {
         const { columns, queryName } = this.props;
 
-        // prettier-ignore
-        const result = await QueryManager.mutate(`
-            mutation {
-                ${queryName.create}(
-                    ${Object.keys(valueDict).map((key) => {
-                        return `${key}: "${valueDict[key]}"`;
-                    }).join('\n')}
-                ) {
-                    ${columns.map((column) => {
-                        if (column.show) {
-                            return column.name;
-                        }
-                    }).join('\n')}
+        try {
+            Object.keys(valueDict).forEach((key) => {
+                const value = valueDict[key];
+                if (value === '') {
+                    throw new Error(`Please enter ${key}.`);
                 }
-            }`);
+            });
 
-        if (result) {
-            this.hideCreateDialog();
+            // prettier-ignore
+            const result = await QueryManager.mutate(`
+                mutation {
+                    ${queryName.create}(
+                        ${Object.keys(valueDict).map((key) => {
+                            return `${key}: "${valueDict[key]}"`;
+                        }).join('\n')}
+                    ) {
+                        ${columns.map((column) => {
+                            if (column.show) {
+                                return column.name;
+                            }
+                        }).join('\n')}
+                    }
+                }`);
+
+            if (result) {
+                this.hideCreateDialog();
+                this.readData();
+            }
+        } catch(error) {
+            alert(error);
         }
     }
 
