@@ -72,7 +72,11 @@ export const TableRow = styled.tr`
     -webkit-transition: -webkit-background-color 0.1s ease-in-out;
     transition: background-color 0.1s ease-in-out;
     :hover {
+        cursor: pointer;
         background-color: #eeeeee;
+    }
+    :active {
+        background-color: #cccccc;
     }
 `;
 

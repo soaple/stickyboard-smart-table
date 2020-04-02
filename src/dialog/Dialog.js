@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import InputType from '../constants/InputType';
 
 const Wrapper = styled.div`
     position: absolute;
@@ -68,6 +69,10 @@ const InputValue = styled.input`
     flex: 2;
     font-size: 16px;
     color: #000000;
+    ${props => props.disabled && `
+        cursor: no-drop;
+        background-color: #dddddd;
+    `}
 `;
 
 const Footer = styled.div`
@@ -110,13 +115,34 @@ const PositiveButton = styled.div`
 `;
 
 function Dialog(props) {
-    const { title, columns, onNegativeBtnClick, onPositiveBtnClick } = props;
+    const {
+        title,
+        columns,
+        data,
+        negativeBtnLabel,
+        onNegativeBtnClick,
+        positiveBtnLabel,
+        onPositiveBtnClick,
+    } = props;
 
     const initialValueDict = columns.reduce((acc, column) => {
-        acc[column.name] = '';
+        const columnName = column.name;
+        if (data && data[columnName]) {
+            if (column.type === InputType.NUMBER) {
+                acc[columnName] = data[columnName];
+            } else if (column.type === InputType.DATE) {
+                // acc[columnName] = new Date(data[columnName]);
+                acc[columnName] = data[columnName];
+            } else {
+                acc[columnName] = data[columnName];
+            }
+        } else {
+            acc[columnName] = '';
+        }
+
         return acc;
     }, {});
-    const [ valueDict, setValueDict ] = useState(initialValueDict);
+    const [valueDict, setValueDict] = useState(initialValueDict);
 
     return (
         <Wrapper>
@@ -128,19 +154,27 @@ function Dialog(props) {
                 <Content>
                     {columns.map((column, index) => {
                         return (
-                            <InputContainer
-                                key={column.name}>
+                            <InputContainer key={column.name}>
                                 <InputName>{column.name}</InputName>
                                 <InputValue
+                                    type={/* column.type || */InputType.TEXT}
                                     value={valueDict[column.name]}
+                                    disabled={!column.updatable}
                                     onChange={(event) => {
+                                        // let value = event.target.value;
+                                        // if (column.type === InputType.NUMBER) {
+                                        //     value = Number(value);
+                                        // }
+
                                         setValueDict({
                                             ...valueDict,
+                                            // [column.name]: value,
                                             [column.name]: event.target.value,
                                         });
-                                    }} />
+                                    }}
+                                />
                             </InputContainer>
-                        )
+                        );
                     })}
                 </Content>
 
@@ -148,12 +182,13 @@ function Dialog(props) {
 
                 <Footer>
                     <NegativeButton onClick={onNegativeBtnClick}>
-                        Cancel
+                        {negativeBtnLabel || 'Cancel'}
                     </NegativeButton>
-                    <PositiveButton onClick={() => {
-                        onPositiveBtnClick(valueDict);
-                    }}>
-                        Create
+                    <PositiveButton
+                        onClick={() => {
+                            onPositiveBtnClick(valueDict);
+                        }}>
+                        {positiveBtnLabel || 'Create'}
                     </PositiveButton>
                 </Footer>
             </DialogWrapper>
@@ -162,4 +197,3 @@ function Dialog(props) {
 }
 
 export default Dialog;
-[]

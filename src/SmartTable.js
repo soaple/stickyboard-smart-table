@@ -21,6 +21,7 @@ import {
 } from './table/Table';
 import TablePagination from './table/TablePagination';
 import Dialog from './dialog/Dialog';
+import InputType from './constants/InputType';
 import { CreateIcon, DeleteIcon } from './IconSet';
 
 const Wrapper = styled.div``;
@@ -45,7 +46,7 @@ class SmartTable extends React.Component {
         // Generate header label dictionary
         let headerLabelDict = {};
         props.columns.forEach((column) => {
-            if (column.label) {
+            if (column.label && column.show) {
                 headerLabelDict[column.name] = column.label;
             }
         });
@@ -60,7 +61,8 @@ class SmartTable extends React.Component {
             rowsPerPage: 10,
             currentPage: 1,
             // Dialog
-            showCreateDialog: false,
+            selectedItem: null,
+            showDialog: false,
         };
     }
 
@@ -94,21 +96,21 @@ class SmartTable extends React.Component {
                         }).join('\n')}
                     ) {
                         ${columns.map((column) => {
-                            if (column.show) {
+                            // if (column.show) {
                                 return column.name;
-                            }
+                            // }
                         }).join('\n')}
                     }
                 }`);
 
             if (result) {
-                this.hideCreateDialog();
+                this.hideDialog();
                 this.readData();
             }
-        } catch(error) {
+        } catch (error) {
             alert(error);
         }
-    }
+    };
 
     readData = async () => {
         const { rows, rowsPerPage, currentPage } = this.state;
@@ -124,9 +126,9 @@ class SmartTable extends React.Component {
                     count
                     rows {
                         ${columns.map((column) => {
-                            if (column.show) {
+                            // if (column.show) {
                                 return column.name;
-                            }
+                            // }
                         }).join('\n')}
                     }
                 }
@@ -138,6 +140,54 @@ class SmartTable extends React.Component {
         });
     };
 
+    updateData = async (valueDict) => {
+        const { columns, queryName } = this.props;
+
+        try {
+            Object.keys(valueDict).forEach((key) => {
+                const value = valueDict[key];
+                if (value === '') {
+                    throw new Error(`Please enter ${key}.`);
+                }
+            });
+
+            // ${Object.keys(valueDict).map((key) => {
+            //     return `${key}: "${valueDict[key]}"`;
+            // }).join('\n')}
+
+            // prettier-ignore
+            const result = await QueryManager.mutate(`
+                mutation {
+                    ${queryName.update}(
+                        ${columns.map((column) => {
+                            const key = column.name;
+                            if (column.type === InputType.NUMBER) {
+                                return `${key}: ${valueDict[key]}`;
+                            } else if (column.type === InputType.DATE) {
+                                // return `${key}: "${valueDict[key].toString()}"`;
+                                return `${key}: "${valueDict[key]}"`;
+                            } else {
+                                return `${key}: "${valueDict[key]}"`;
+                            }
+                        }).join('\n')}
+                    ) {
+                        ${columns.map((column) => {
+                            // if (column.show) {
+                                return column.name;
+                            // }
+                        }).join('\n')}
+                    }
+                }`);
+
+            if (result) {
+                this.hideDialog();
+                this.readData();
+            }
+        } catch (error) {
+            alert(error);
+        }
+    };
+
     onPageChange = (page) => {
         this.setState(
             {
@@ -147,15 +197,15 @@ class SmartTable extends React.Component {
         );
     };
 
-    showCreateDialog = () => {
+    showDialog = () => {
         this.setState({
-            showCreateDialog: true,
+            showDialog: true,
         });
     };
 
-    hideCreateDialog = () => {
+    hideDialog = () => {
         this.setState({
-            showCreateDialog: false,
+            showDialog: false,
         });
     };
 
@@ -170,7 +220,8 @@ class SmartTable extends React.Component {
             rowsPerPage,
             currentPage,
             // Dialog
-            showCreateDialog,
+            selectedItem,
+            showDialog,
         } = this.state;
         const { title, columns } = this.props;
 
@@ -178,13 +229,15 @@ class SmartTable extends React.Component {
         const offset = Math.ceil((currentPage - 1) * rowsPerPage);
         const emptyRows = rowsPerPage - rows.length;
 
+        const isDialogCreateMode = selectedItem === null;
+
         return (
             <TableWrapper>
                 {/* Table Toolbar */}
                 <TableToolbar>
                     <TableToolbarTitle>{title}</TableToolbarTitle>
 
-                    <ClickableContainer onClick={this.showCreateDialog}>
+                    <ClickableContainer onClick={this.showDialog}>
                         <CreateIcon width={24} height={24} fill={'#000000'} />
                     </ClickableContainer>
 
@@ -203,7 +256,7 @@ class SmartTable extends React.Component {
                         <TableHead>
                             <TableHeader>
                                 {rows.length > 0 &&
-                                    Object.keys(rows[0]).map((key, index) => {
+                                    Object.keys(headerLabelDict).map((key, index) => {
                                         return (
                                             <TableHeaderData key={index}>
                                                 {headerLabelDict[key] ||
@@ -218,13 +271,22 @@ class SmartTable extends React.Component {
                         <TableBody>
                             {rows.map((item, index) => {
                                 return (
-                                    <TableRow key={index}>
+                                    <TableRow
+                                        key={index}
+                                        onClick={() => {
+                                            this.setState({
+                                                selectedItem: item,
+                                                showDialog: true,
+                                            });
+                                        }}>
                                         {Object.keys(item).map((key, index) => {
-                                            return (
-                                                <TableData key={index}>
-                                                    {item[key]}
-                                                </TableData>
-                                            );
+                                            if (headerLabelDict[key]) {
+                                                return (
+                                                    <TableData key={index}>
+                                                        {item[key]}
+                                                    </TableData>
+                                                );
+                                            }
                                         })}
                                     </TableRow>
                                 );
@@ -246,12 +308,27 @@ class SmartTable extends React.Component {
                 </TableFooter>
 
                 {/* Create Dialog */}
-                {showCreateDialog && (
+                {showDialog && (
                     <Dialog
-                        title={`Create ${title}`}
-                        columns={columns.filter((column) => column.required)}
-                        onNegativeBtnClick={this.hideCreateDialog}
-                        onPositiveBtnClick={this.createData}
+                        title={`${
+                            isDialogCreateMode ? 'Create' : 'Update'
+                        } ${title}`}
+                        columns={
+                            isDialogCreateMode
+                                ? columns.filter((column) => column.required)
+                                : columns
+                        }
+                        data={selectedItem}
+                        negativeBtnLabel={'Cancel'}
+                        onNegativeBtnClick={this.hideDialog}
+                        positiveBtnLabel={
+                            isDialogCreateMode ? 'Create' : 'Update'
+                        }
+                        onPositiveBtnClick={
+                            isDialogCreateMode
+                                ? this.createData
+                                : this.updateData
+                        }
                     />
                 )}
             </TableWrapper>
