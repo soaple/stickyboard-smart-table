@@ -4,7 +4,7 @@ import styled from 'styled-components';
 export function RefreshIcon({ width = 24, height = 24, fill = '#000000' }) {
     return (
         <svg width={width} height={height} viewBox="0 0 500 500">
-            <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fill-rule="evenodd">
+            <g id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
                 <g id="Refresh" transform="translate(28.000000, 28.000000)" stroke={fill}>
                     <circle id="Oval" strokeWidth="56" cx="222" cy="222" r="222"></circle>
                     <g id="Group" transform="translate(117.000000, 100.000000)" strokeLinecap="round" strokeLinejoin="round">

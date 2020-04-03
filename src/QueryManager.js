@@ -36,7 +36,6 @@ const runMutation = async (mutation, refetchQuery) => {
             query: gql`
                 ${refetchQuery}
             `,
-            // variables: { repoName: 'apollographql/apollo-client' },
         }]
     });
 
@@ -56,6 +55,8 @@ const QueryManager = {
                 addTypename: false,
             }),
         });
+
+        return apolloClient;
     },
 
     query: async (query) => {
