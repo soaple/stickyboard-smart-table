@@ -23,7 +23,7 @@ const runQuery = async (query) => {
     return resultData;
 };
 
-const runMutation = async (mutation) => {
+const runMutation = async (mutation, refetchQuery) => {
     if (!apolloClient) {
         throw new Error("ApolloClient didn't initialized.");
     }
@@ -32,7 +32,15 @@ const runMutation = async (mutation) => {
         mutation: gql`
             ${mutation}
         `,
+        refetchQueries: [{
+            query: gql`
+                ${refetchQuery}
+            `,
+            // variables: { repoName: 'apollographql/apollo-client' },
+        }]
     });
+
+    console.log(result);
 
     // Extract result data from the result
     const resultData = Object.values(result.data)[0];
@@ -54,8 +62,8 @@ const QueryManager = {
         return await runQuery(query);
     },
 
-    mutate: async (mutation) => {
-        return await runMutation(mutation);
+    mutate: async (mutation, refetchQuery) => {
+        return await runMutation(mutation, refetchQuery);
     }
 };
 

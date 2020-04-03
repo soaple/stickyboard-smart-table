@@ -22,12 +22,15 @@ import {
 import TablePagination from './table/TablePagination';
 import Dialog from './dialog/Dialog';
 import InputType from './constants/InputType';
-import { CreateIcon, DeleteIcon } from './IconSet';
+import { RefreshIcon, CreateIcon, DeleteIcon } from './IconSet';
 
 const Wrapper = styled.div``;
 
 const ClickableContainer = styled.div`
     margin: 0 16px;
+    &:last-child {
+        margin: 0 0 0 16px;
+    }
     :hover {
         cursor: pointer;
     }
@@ -76,49 +79,37 @@ class SmartTable extends React.Component {
         this.readData();
     }
 
-    createData = async (valueDict) => {
+    generateCreateMutation = (valueDict) => {
         const { columns, queryName } = this.props;
 
-        try {
-            Object.keys(valueDict).forEach((key) => {
-                const value = valueDict[key];
-                if (value === '') {
-                    throw new Error(`Please enter ${key}.`);
-                }
-            });
-
-            // prettier-ignore
-            const result = await QueryManager.mutate(`
-                mutation {
-                    ${queryName.create}(
-                        ${Object.keys(valueDict).map((key) => {
+        // prettier-ignore
+        return `
+            mutation {
+                ${queryName.create}(
+                    ${Object.keys(valueDict)
+                        .map((key) => {
                             return `${key}: "${valueDict[key]}"`;
-                        }).join('\n')}
-                    ) {
-                        ${columns.map((column) => {
+                        })
+                        .join('\n')}
+                ) {
+                    ${columns
+                        .map((column) => {
                             // if (column.show) {
-                                return column.name;
+                            return column.name;
                             // }
-                        }).join('\n')}
-                    }
-                }`);
-
-            if (result) {
-                this.hideDialog();
-                this.readData();
-            }
-        } catch (error) {
-            alert(error);
-        }
+                        })
+                        .join('\n')}
+                }
+            }`;
     };
 
-    readData = async () => {
+    generateReadQuery = () => {
         const { rows, rowsPerPage, currentPage } = this.state;
         const { columns, queryName } = this.props;
 
         // prettier-ignore
-        const result = await QueryManager.query(`
-            {
+        return `
+            query {
                 ${queryName.readItems}(
                     offset: ${rowsPerPage * (currentPage - 1)},
                     limit: ${rowsPerPage}
@@ -132,7 +123,64 @@ class SmartTable extends React.Component {
                         }).join('\n')}
                     }
                 }
-            }`);
+            }`
+    };
+
+    generateUpdateMutation = (valueDict) => {
+        const { columns, queryName } = this.props;
+
+        // prettier-ignore
+        return `
+            mutation {
+                ${queryName.update}(
+                    ${columns.map((column) => {
+                        const key = column.name;
+                        if (column.type === InputType.NUMBER) {
+                            return `${key}: ${valueDict[key]}`;
+                        } else if (column.type === InputType.DATE) {
+                            // return `${key}: "${valueDict[key].toString()}"`;
+                            return `${key}: "${valueDict[key]}"`;
+                        } else {
+                            return `${key}: "${valueDict[key]}"`;
+                        }
+                    }).join('\n')}
+                ) {
+                    ${columns.map((column) => {
+                        // if (column.show) {
+                            return column.name;
+                        // }
+                    }).join('\n')}
+                }
+            }`
+    };
+
+    createData = async (valueDict) => {
+        try {
+            Object.keys(valueDict).forEach((key) => {
+                const value = valueDict[key];
+                if (value === '') {
+                    throw new Error(`Please enter ${key}.`);
+                }
+            });
+
+            const createMutation = this.generateCreateMutation(
+                generateCreateMutation
+            );
+            const readQuery = this.generateReadQuery();
+            const result = await QueryManager.mutate(createMutation, readQuery);
+
+            if (result) {
+                this.hideDialog();
+                // this.readData();
+            }
+        } catch (error) {
+            alert(error);
+        }
+    };
+
+    readData = async () => {
+        const readQuery = this.generateReadQuery();
+        const result = await QueryManager.query(readQuery);
 
         this.setState({
             count: result.count,
@@ -141,8 +189,6 @@ class SmartTable extends React.Component {
     };
 
     updateData = async (valueDict) => {
-        const { columns, queryName } = this.props;
-
         try {
             Object.keys(valueDict).forEach((key) => {
                 const value = valueDict[key];
@@ -156,32 +202,13 @@ class SmartTable extends React.Component {
             // }).join('\n')}
 
             // prettier-ignore
-            const result = await QueryManager.mutate(`
-                mutation {
-                    ${queryName.update}(
-                        ${columns.map((column) => {
-                            const key = column.name;
-                            if (column.type === InputType.NUMBER) {
-                                return `${key}: ${valueDict[key]}`;
-                            } else if (column.type === InputType.DATE) {
-                                // return `${key}: "${valueDict[key].toString()}"`;
-                                return `${key}: "${valueDict[key]}"`;
-                            } else {
-                                return `${key}: "${valueDict[key]}"`;
-                            }
-                        }).join('\n')}
-                    ) {
-                        ${columns.map((column) => {
-                            // if (column.show) {
-                                return column.name;
-                            // }
-                        }).join('\n')}
-                    }
-                }`);
+            const updateMutation = this.generateUpdateMutation(valueDict);
+            const readQuery = this.generateReadQuery();
+            const result = await QueryManager.mutate(updateMutation, readQuery);
 
             if (result) {
                 this.hideDialog();
-                this.readData();
+                // this.readData();
             }
         } catch (error) {
             alert(error);
@@ -237,6 +264,10 @@ class SmartTable extends React.Component {
                 <TableToolbar>
                     <TableToolbarTitle>{title}</TableToolbarTitle>
 
+                    <ClickableContainer onClick={this.readData}>
+                        <RefreshIcon width={24} height={24} fill={'#000000'} />
+                    </ClickableContainer>
+
                     <ClickableContainer onClick={this.showDialog}>
                         <CreateIcon width={24} height={24} fill={'#000000'} />
                     </ClickableContainer>
@@ -256,14 +287,16 @@ class SmartTable extends React.Component {
                         <TableHead>
                             <TableHeader>
                                 {rows.length > 0 &&
-                                    Object.keys(headerLabelDict).map((key, index) => {
-                                        return (
-                                            <TableHeaderData key={index}>
-                                                {headerLabelDict[key] ||
-                                                    key.toUpperCase()}
-                                            </TableHeaderData>
-                                        );
-                                    })}
+                                    Object.keys(headerLabelDict).map(
+                                        (key, index) => {
+                                            return (
+                                                <TableHeaderData key={index}>
+                                                    {headerLabelDict[key] ||
+                                                        key.toUpperCase()}
+                                                </TableHeaderData>
+                                            );
+                                        }
+                                    )}
                             </TableHeader>
                         </TableHead>
 
