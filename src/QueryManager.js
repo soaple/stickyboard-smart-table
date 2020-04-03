@@ -39,8 +39,6 @@ const runMutation = async (mutation, refetchQuery) => {
         }]
     });
 
-    console.log(result);
-
     // Extract result data from the result
     const resultData = Object.values(result.data)[0];
 

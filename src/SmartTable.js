@@ -1,9 +1,16 @@
 // src/SmartTable.js
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import QueryManager from './QueryManager';
+
+import ApolloClient from 'apollo-boost';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { ApolloProvider, useQuery, useMutation } from '@apollo/react-hooks';
+import gql from 'graphql-tag';
+import QueryGenerator from './utils/QueryGenerator';
+// import QueryManager from './QueryManager';
+
 import {
     TableWrapper,
     TableToolbar,
@@ -36,337 +43,232 @@ const ClickableContainer = styled.div`
     }
 `;
 
-class SmartTable extends React.Component {
-    constructor(props) {
-        super(props);
+function SmartTable(props) {
+    const { title, columns, schema } = props;
 
-        this.tableHeader = React.createRef();
-
-        // Initialize GraphQL QueryManager
-        const endpoint = props.endpoint || `${window.location.origin}/graphql`;
-        QueryManager.initialize(endpoint);
-
-        // Generate header label dictionary
-        let headerLabelDict = {};
-        props.columns.forEach((column) => {
-            if (column.label && column.show) {
-                headerLabelDict[column.name] = column.label;
-            }
-        });
-
-        this.state = {
-            headerHeight: 0,
-            headerLabelDict: headerLabelDict,
-            // Data
-            count: 0,
-            rows: [],
-            // Table pagination
-            rowsPerPage: 10,
-            currentPage: 1,
-            // Dialog
-            selectedItem: null,
-            showDialog: false,
-        };
-    }
-
-    componentDidMount() {
-        if (this.tableHeader.current) {
-            this.setState({
-                headerHeight: this.tableHeader.current.offsetHeight,
-            });
+    // Generate header label dictionary
+    let initialHeaderLabelDict = {};
+    columns.forEach((column) => {
+        if (column.label && column.show) {
+            initialHeaderLabelDict[column.name] = column.label;
         }
+    });
 
-        this.readData();
-    }
+    const [headerLabelDict] = useState(initialHeaderLabelDict);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [showDialog, setShowDialog] = useState(false);
 
-    generateCreateMutation = (valueDict) => {
-        const { columns, queryName } = this.props;
+    // Extract data from GraphQL schema
+    const readQueryName = schema.query.read.split('(')[0];
+    const readItemsQueryName = schema.query.readItems.split('(')[0];
 
-        // prettier-ignore
-        return `
-            mutation {
-                ${queryName.create}(
-                    ${Object.keys(valueDict)
-                        .map((key) => {
-                            return `${key}: "${valueDict[key]}"`;
-                        })
-                        .join('\n')}
-                ) {
-                    ${columns
-                        .map((column) => {
-                            // if (column.show) {
-                            return column.name;
-                            // }
-                        })
-                        .join('\n')}
-                }
-            }`;
-    };
-
-    generateReadQuery = () => {
-        const { rows, rowsPerPage, currentPage } = this.state;
-        const { columns, queryName } = this.props;
-
-        // prettier-ignore
-        return `
-            query {
-                ${queryName.readItems}(
-                    offset: ${rowsPerPage * (currentPage - 1)},
-                    limit: ${rowsPerPage}
-                ) {
-                    count
-                    rows {
-                        ${columns.map((column) => {
-                            // if (column.show) {
-                                return column.name;
-                            // }
-                        }).join('\n')}
-                    }
-                }
-            }`
-    };
-
-    generateUpdateMutation = (valueDict) => {
-        const { columns, queryName } = this.props;
-
-        // prettier-ignore
-        return `
-            mutation {
-                ${queryName.update}(
-                    ${columns.map((column) => {
-                        const key = column.name;
-                        if (column.type === InputType.NUMBER) {
-                            return `${key}: ${valueDict[key]}`;
-                        } else if (column.type === InputType.DATE) {
-                            // return `${key}: "${valueDict[key].toString()}"`;
-                            return `${key}: "${valueDict[key]}"`;
-                        } else {
-                            return `${key}: "${valueDict[key]}"`;
-                        }
-                    }).join('\n')}
-                ) {
-                    ${columns.map((column) => {
-                        // if (column.show) {
-                            return column.name;
-                        // }
-                    }).join('\n')}
-                }
-            }`
-    };
-
-    createData = async (valueDict) => {
-        try {
-            Object.keys(valueDict).forEach((key) => {
-                const value = valueDict[key];
-                if (value === '') {
-                    throw new Error(`Please enter ${key}.`);
-                }
-            });
-
-            const createMutation = this.generateCreateMutation(
-                generateCreateMutation
-            );
-            const readQuery = this.generateReadQuery();
-            const result = await QueryManager.mutate(createMutation, readQuery);
-
-            if (result) {
-                this.hideDialog();
-                // this.readData();
-            }
-        } catch (error) {
-            alert(error);
-        }
-    };
-
-    readData = async () => {
-        const readQuery = this.generateReadQuery();
-        const result = await QueryManager.query(readQuery);
-
-        this.setState({
-            count: result.count,
-            rows: result.rows,
-        });
-    };
-
-    updateData = async (valueDict) => {
-        try {
-            Object.keys(valueDict).forEach((key) => {
-                const value = valueDict[key];
-                if (value === '') {
-                    throw new Error(`Please enter ${key}.`);
-                }
-            });
-
-            // ${Object.keys(valueDict).map((key) => {
-            //     return `${key}: "${valueDict[key]}"`;
-            // }).join('\n')}
-
-            // prettier-ignore
-            const updateMutation = this.generateUpdateMutation(valueDict);
-            const readQuery = this.generateReadQuery();
-            const result = await QueryManager.mutate(updateMutation, readQuery);
-
-            if (result) {
-                this.hideDialog();
-                // this.readData();
-            }
-        } catch (error) {
-            alert(error);
-        }
-    };
-
-    onPageChange = (page) => {
-        this.setState(
-            {
-                currentPage: page,
-            },
-            this.readData
+    let createMutationObject;
+    if (schema.mutation.create) {
+        createMutationObject = QueryGenerator.generateMutationObject(
+            schema.mutation.create
         );
-    };
+    }
 
-    showDialog = () => {
-        this.setState({
-            showDialog: true,
-        });
-    };
+    let updateMutationObject;
+    if (schema.mutation.update) {
+        updateMutationObject = QueryGenerator.generateMutationObject(
+            schema.mutation.update
+        );
+    }
 
-    hideDialog = () => {
-        this.setState({
-            showDialog: false,
-        });
-    };
+    const { loading, error, data } = useQuery(
+        gql`
+            ${QueryGenerator.generateReadItemsQuery(
+                columns,
+                readItemsQueryName,
+                rowsPerPage * (currentPage - 1), // offset
+                rowsPerPage // limit
+            )}
+        `
+    );
 
-    render() {
-        const {
-            headerHeight,
-            headerLabelDict,
-            // Data
-            count,
-            rows,
-            // Table pagination
-            rowsPerPage,
-            currentPage,
-            // Dialog
-            selectedItem,
-            showDialog,
-        } = this.state;
-        const { title, columns } = this.props;
+    const [createMutation] = useMutation(
+        gql`
+            ${QueryGenerator.generateCreateMutation(
+                columns,
+                createMutationObject
+            )}
+        `
+    );
 
-        const totalPageCount = Math.ceil(count / rowsPerPage);
-        const offset = Math.ceil((currentPage - 1) * rowsPerPage);
-        const emptyRows = rowsPerPage - rows.length;
+    const [updateMutation] = useMutation(
+        gql`
+            ${QueryGenerator.generateUpdateMutation(
+                columns,
+                updateMutationObject
+            )}
+        `
+    );
 
-        const isDialogCreateMode = selectedItem === null;
+    function onCreateOrUpdateBtnClick(valueDict) {
+        try {
+            Object.keys(valueDict).forEach((key) => {
+                const value = valueDict[key];
+                if (value === '') {
+                    throw new Error(`Please enter ${key}.`);
+                }
+            });
 
-        return (
-            <TableWrapper>
-                {/* Table Toolbar */}
-                <TableToolbar>
-                    <TableToolbarTitle>{title}</TableToolbarTitle>
+            const readItemsQuery = QueryGenerator.generateReadItemsQuery(
+                columns,
+                readItemsQueryName,
+                rowsPerPage * (currentPage - 1), // offset
+                rowsPerPage // limit
+            );
 
-                    <ClickableContainer onClick={this.readData}>
-                        <RefreshIcon width={24} height={24} fill={'#000000'} />
-                    </ClickableContainer>
+            const params = {
+                variables: { ...valueDict },
+                refetchQueries: [
+                    {
+                        query: gql`
+                            ${readItemsQuery}
+                        `,
+                    },
+                ],
+            };
 
-                    <ClickableContainer onClick={this.showDialog}>
-                        <CreateIcon width={24} height={24} fill={'#000000'} />
-                    </ClickableContainer>
+            if (isDialogCreateMode) {
+                createMutation(params);
+            } else {
+                updateMutation(params);
+            }
+        } catch (error) {
+            alert(error);
+        }
+    }
 
-                    <ClickableContainer
-                        onClick={() => {
-                            alert('Delete');
-                        }}>
-                        <DeleteIcon width={24} height={24} fill={'#000000'} />
-                    </ClickableContainer>
-                </TableToolbar>
+    useEffect(() => {
+        if (selectedItem) {
+            setShowDialog(true);
+        }
+    }, [selectedItem]);
 
-                {/* Table Content (Horizontally scrollable) */}
-                <TableContent>
-                    <Table>
-                        {/* Table Header */}
-                        <TableHead>
-                            <TableHeader>
-                                {rows.length > 0 &&
-                                    Object.keys(headerLabelDict).map(
-                                        (key, index) => {
+    if (loading) return <p>Loading...</p>;
+
+    const { count, rows } = data[readItemsQueryName];
+
+    if (error || !rows) return <p>Error :(</p>;
+
+    const totalPageCount = Math.ceil(count / rowsPerPage);
+    const offset = Math.ceil((currentPage - 1) * rowsPerPage);
+    const emptyRows = rowsPerPage - rows.length;
+
+    const isDialogCreateMode = selectedItem === null;
+
+    return (
+        <TableWrapper>
+            {/* Table Toolbar */}
+            <TableToolbar>
+                <TableToolbarTitle>{title}</TableToolbarTitle>
+
+                <ClickableContainer onClick={() => {}}>
+                    <RefreshIcon width={24} height={24} fill={'#000000'} />
+                </ClickableContainer>
+
+                <ClickableContainer
+                    onClick={() => {
+                        setShowDialog(true);
+                    }}>
+                    <CreateIcon width={24} height={24} fill={'#000000'} />
+                </ClickableContainer>
+
+                <ClickableContainer
+                    onClick={() => {
+                        alert('Delete');
+                    }}>
+                    <DeleteIcon width={24} height={24} fill={'#000000'} />
+                </ClickableContainer>
+            </TableToolbar>
+
+            {/* Table Content (Horizontally scrollable) */}
+            <TableContent>
+                <Table>
+                    {/* Table Header */}
+                    <TableHead>
+                        <TableHeader>
+                            {rows.length > 0 &&
+                                Object.keys(headerLabelDict).map(
+                                    (key, index) => {
+                                        return (
+                                            <TableHeaderData key={index}>
+                                                {headerLabelDict[key] ||
+                                                    key.toUpperCase()}
+                                            </TableHeaderData>
+                                        );
+                                    }
+                                )}
+                        </TableHeader>
+                    </TableHead>
+
+                    {/* Table Body */}
+                    <TableBody>
+                        {rows.map((item, index) => {
+                            return (
+                                <TableRow
+                                    key={index}
+                                    onClick={() => {
+                                        setSelectedItem(item);
+                                    }}>
+                                    {Object.keys(item).map((key, index) => {
+                                        if (headerLabelDict[key]) {
                                             return (
-                                                <TableHeaderData key={index}>
-                                                    {headerLabelDict[key] ||
-                                                        key.toUpperCase()}
-                                                </TableHeaderData>
+                                                <TableData key={index}>
+                                                    {item[key]}
+                                                </TableData>
                                             );
                                         }
-                                    )}
-                            </TableHeader>
-                        </TableHead>
+                                    })}
+                                </TableRow>
+                            );
+                        })}
 
-                        {/* Table Body */}
-                        <TableBody>
-                            {rows.map((item, index) => {
-                                return (
-                                    <TableRow
-                                        key={index}
-                                        onClick={() => {
-                                            this.setState({
-                                                selectedItem: item,
-                                                showDialog: true,
-                                            });
-                                        }}>
-                                        {Object.keys(item).map((key, index) => {
-                                            if (headerLabelDict[key]) {
-                                                return (
-                                                    <TableData key={index}>
-                                                        {item[key]}
-                                                    </TableData>
-                                                );
-                                            }
-                                        })}
-                                    </TableRow>
-                                );
-                            })}
+                        {emptyRows > 0 && <TableRowEmpty />}
+                    </TableBody>
+                </Table>
+            </TableContent>
 
-                            {emptyRows > 0 && <TableRowEmpty />}
-                        </TableBody>
-                    </Table>
-                </TableContent>
+            {/* Table Footer */}
+            <TableFooter>
+                <TablePagination
+                    totalPage={totalPageCount}
+                    currentPage={currentPage}
+                    rowsPerPage={rowsPerPage}
+                    onPageChange={(page) => {
+                        setCurrentPage(page);
+                    }}
+                />
+            </TableFooter>
 
-                {/* Table Footer */}
-                <TableFooter>
-                    <TablePagination
-                        totalPage={totalPageCount}
-                        currentPage={currentPage}
-                        rowsPerPage={rowsPerPage}
-                        onPageChange={this.onPageChange}
-                    />
-                </TableFooter>
-
-                {/* Create Dialog */}
-                {showDialog && (
-                    <Dialog
-                        title={`${
-                            isDialogCreateMode ? 'Create' : 'Update'
-                        } ${title}`}
-                        columns={
-                            isDialogCreateMode
-                                ? columns.filter((column) => column.required)
-                                : columns
-                        }
-                        data={selectedItem}
-                        negativeBtnLabel={'Cancel'}
-                        onNegativeBtnClick={this.hideDialog}
-                        positiveBtnLabel={
-                            isDialogCreateMode ? 'Create' : 'Update'
-                        }
-                        onPositiveBtnClick={
-                            isDialogCreateMode
-                                ? this.createData
-                                : this.updateData
-                        }
-                    />
-                )}
-            </TableWrapper>
-        );
-    }
+            {/* Create Dialog */}
+            {showDialog && (
+                <Dialog
+                    title={`${
+                        isDialogCreateMode ? 'Create' : 'Update'
+                    } ${title}`}
+                    columns={
+                        isDialogCreateMode
+                            ? columns.filter((column) => column.required)
+                            : columns
+                    }
+                    data={selectedItem}
+                    negativeBtnLabel={'Cancel'}
+                    onNegativeBtnClick={() => {
+                        setSelectedItem(null);
+                        setShowDialog(false);
+                    }}
+                    positiveBtnLabel={isDialogCreateMode ? 'Create' : 'Update'}
+                    onPositiveBtnClick={onCreateOrUpdateBtnClick}
+                />
+            )}
+        </TableWrapper>
+    );
 }
 
 SmartTable.propTypes = {
@@ -377,13 +279,33 @@ SmartTable.propTypes = {
             label: PropTypes.string,
         })
     ),
-    queryName: PropTypes.shape({
-        create: PropTypes.string.isRequired,
-        readItems: PropTypes.string.isRequired,
-        read: PropTypes.string.isRequired,
-        update: PropTypes.string.isRequired,
-        delete: PropTypes.string.isRequired,
+    schema: PropTypes.shape({
+        query: PropTypes.shape({
+            read: PropTypes.string.isRequired,
+            readItems: PropTypes.string.isRequired,
+        }),
+        mutation: PropTypes.shape({
+            create: PropTypes.string,
+            update: PropTypes.string,
+        }),
     }),
 };
 
-export default SmartTable;
+const SmartTableWithApollo = (props) => {
+    // Initialize ApolloClient
+    const endpoint = props.endpoint || `${window.location.origin}/graphql`;
+    const apolloClient = new ApolloClient({
+        uri: endpoint,
+        cache: new InMemoryCache({
+            addTypename: false,
+        }),
+    });
+
+    return (
+        <ApolloProvider client={apolloClient}>
+            <SmartTable {...props} />
+        </ApolloProvider>
+    );
+};
+
+export default SmartTableWithApollo;
