@@ -1,6 +1,6 @@
 // src/SmartTable.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
@@ -75,36 +75,39 @@ function SmartTable(props) {
     const { title, columns, schema } = props;
 
     // Generate header label dictionary
-    let initialHeaderLabelDict = {};
-    columns.forEach((column) => {
-        if (column.label && column.show) {
-            initialHeaderLabelDict[column.name] = column.label;
-        }
-    });
+    const headerLabelDict = useMemo(() => {
+        let initialHeaderLabelDict = {};
+        columns.forEach((column) => {
+            if (column.label && column.show) {
+                initialHeaderLabelDict[column.name] = column.label;
+            }
+        });
+        return initialHeaderLabelDict;
+    }, [columns]);
 
-    const [headerLabelDict] = useState(initialHeaderLabelDict);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedItem, setSelectedItem] = useState(null);
     const [showDialog, setShowDialog] = useState(false);
 
     // Extract data from GraphQL schema
-    const readQueryName = schema.query.read.split('(')[0];
-    const readItemsQueryName = schema.query.readItems.split('(')[0];
+    const readQueryName = useMemo(() => schema.query.read.split('(')[0], [
+        schema.query.read,
+    ]);
+    const readItemsQueryName = useMemo(
+        () => schema.query.readItems.split('(')[0],
+        [schema.query.readItems]
+    );
 
-    let createMutationObject;
-    if (schema.mutation.create) {
-        createMutationObject = QueryGenerator.generateMutationObject(
-            schema.mutation.create
-        );
-    }
+    let createMutationObject = useMemo(
+        () => QueryGenerator.generateMutationObject(schema.mutation.create),
+        [schema.mutation.create]
+    );
 
-    let updateMutationObject;
-    if (schema.mutation.update) {
-        updateMutationObject = QueryGenerator.generateMutationObject(
-            schema.mutation.update
-        );
-    }
+    let updateMutationObject = useMemo(
+        () => QueryGenerator.generateMutationObject(schema.mutation.update),
+        [schema.mutation.update]
+    );
 
     const { loading, error, data, refetch } = useQuery(
         gql`
@@ -175,7 +178,7 @@ function SmartTable(props) {
     }
 
     useEffect(() => {
-        if (selectedItem) {
+        if (selectedItem && !showDialog) {
             setShowDialog(true);
         }
     }, [selectedItem]);
