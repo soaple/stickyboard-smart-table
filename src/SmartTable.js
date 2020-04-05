@@ -43,6 +43,34 @@ const ClickableContainer = styled.div`
     }
 `;
 
+const LoadingWrapper = styled.div`
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
+const LoadingText = styled.div`
+    font-size: 16px;
+    font-weight: 500;
+    color: #000000;
+`;
+
+const ErrorWrapper = styled.div`
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
+const ErrorText = styled.div`
+    font-size: 16px;
+    font-weight: 500;
+    color: #e33b3b;
+`;
+
 function SmartTable(props) {
     const { title, columns, schema } = props;
 
@@ -78,7 +106,7 @@ function SmartTable(props) {
         );
     }
 
-    const { loading, error, data } = useQuery(
+    const { loading, error, data, refetch } = useQuery(
         gql`
             ${QueryGenerator.generateReadItemsQuery(
                 columns,
@@ -136,8 +164,10 @@ function SmartTable(props) {
 
             if (isDialogCreateMode) {
                 createMutation(params);
+                setShowDialog(false);
             } else {
                 updateMutation(params);
+                setShowDialog(false);
             }
         } catch (error) {
             alert(error);
@@ -150,11 +180,23 @@ function SmartTable(props) {
         }
     }, [selectedItem]);
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) {
+        return (
+            <LoadingWrapper>
+                <LoadingText>Loading...</LoadingText>
+            </LoadingWrapper>
+        );
+    }
 
     const { count, rows } = data[readItemsQueryName];
 
-    if (error || !rows) return <p>Error :(</p>;
+    if (error || !rows) {
+        return (
+            <ErrorWrapper>
+                <ErrorText>Error</ErrorText>
+            </ErrorWrapper>
+        );
+    }
 
     const totalPageCount = Math.ceil(count / rowsPerPage);
     const offset = Math.ceil((currentPage - 1) * rowsPerPage);
@@ -168,7 +210,7 @@ function SmartTable(props) {
             <TableToolbar>
                 <TableToolbarTitle>{title}</TableToolbarTitle>
 
-                <ClickableContainer onClick={() => {}}>
+                <ClickableContainer onClick={() => refetch()}>
                     <RefreshIcon width={24} height={24} fill={'#000000'} />
                 </ClickableContainer>
 
@@ -179,12 +221,14 @@ function SmartTable(props) {
                     <CreateIcon width={24} height={24} fill={'#000000'} />
                 </ClickableContainer>
 
-                <ClickableContainer
-                    onClick={() => {
-                        alert('Delete');
-                    }}>
-                    <DeleteIcon width={24} height={24} fill={'#000000'} />
-                </ClickableContainer>
+                {false && (
+                    <ClickableContainer
+                        onClick={() => {
+                            alert('Delete');
+                        }}>
+                        <DeleteIcon width={24} height={24} fill={'#000000'} />
+                    </ClickableContainer>
+                )}
             </TableToolbar>
 
             {/* Table Content (Horizontally scrollable) */}
