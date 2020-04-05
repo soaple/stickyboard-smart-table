@@ -28,6 +28,7 @@ const QueryGenerator = {
             mutation ${createMutationObject.header}{
                 ${createMutationObject.name}(
                     ${columns
+                        .filter((column) => column.required)
                         .map((column) => {
                             const key = column.name;
                             return `${key}: $${key}`;
