@@ -72,14 +72,18 @@ const ErrorText = styled.div`
 `;
 
 function SmartTable(props) {
-    const { title, columns, schema } = props;
+    const { title, schema, customHeaderTitle } = props;
+    const { columns } = schema;
 
     // Generate header label dictionary
     const headerLabelDict = useMemo(() => {
         let initialHeaderLabelDict = {};
         columns.forEach((column) => {
-            if (column.label && column.show) {
-                initialHeaderLabelDict[column.name] = column.label;
+            if (customHeaderTitle && customHeaderTitle[column.name]) {
+                initialHeaderLabelDict[column.name] =
+                    customHeaderTitle[column.name];
+            } else {
+                initialHeaderLabelDict[column.name] = column.name;
             }
         });
         return initialHeaderLabelDict;
