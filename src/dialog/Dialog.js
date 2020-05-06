@@ -34,11 +34,12 @@ const Title = styled.div`
 `;
 
 const Content = styled.div`
+    max-height: calc(80% - 24px);
     display: flex;
     flex-direction: column;
     /* align-items: center; */
     justify-content: center;
-    overflow: auto;
+    overflow: scroll;
     font-size: 20px;
     font-weight: bold;
     color: #000000;
