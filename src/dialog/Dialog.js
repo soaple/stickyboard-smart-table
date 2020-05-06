@@ -19,6 +19,8 @@ const Wrapper = styled.div`
 `;
 
 const DialogWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
     width: 80%;
     max-height: 80%;
     border-radius: 16px;
@@ -35,10 +37,7 @@ const Title = styled.div`
 
 const Content = styled.div`
     max-height: calc(80% - 24px);
-    display: flex;
-    flex-direction: column;
-    /* align-items: center; */
-    justify-content: center;
+    display: block;
     overflow: scroll;
     font-size: 20px;
     font-weight: bold;
