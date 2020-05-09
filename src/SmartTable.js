@@ -187,6 +187,7 @@ function SmartTable(props) {
         }
     }, [selectedItem]);
 
+    // if (loading && !data) {
     if (loading) {
         return (
             <LoadingWrapper>
