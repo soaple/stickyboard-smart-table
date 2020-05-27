@@ -28,6 +28,7 @@ import {
 } from './table/Table';
 import TablePagination from './table/TablePagination';
 import Dialog from './dialog/Dialog';
+import Button from './button/Button';
 import InputType from './constants/InputType';
 import { RefreshIcon, CreateIcon, DeleteIcon } from './IconSet';
 
@@ -250,8 +251,15 @@ function SmartTable(props) {
                                     (key, index) => {
                                         return (
                                             <TableHeaderData key={index}>
-                                                {headerLabelDict[key] ||
-                                                    key.toUpperCase()}
+                                                <Button
+                                                    onClick={() => {
+                                                        alert(
+                                                            `${key} clicked!`
+                                                        );
+                                                    }}>
+                                                    {headerLabelDict[key] ||
+                                                        key.toUpperCase()}
+                                                </Button>
                                             </TableHeaderData>
                                         );
                                     }

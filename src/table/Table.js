@@ -47,7 +47,7 @@ export const TableHeader = styled.tr`
 `;
 
 export const TableHeaderData = styled.th`
-    padding: 8px 12px;
+    /* padding: 8px 12px; */
     position: sticky;
     top: 0;
     /* background-color: white; */
