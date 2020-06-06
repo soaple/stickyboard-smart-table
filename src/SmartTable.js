@@ -73,7 +73,7 @@ const ErrorText = styled.div`
 `;
 
 function SmartTable(props) {
-    const { title, schema, customHeaderTitle } = props;
+    const { title, schema, customHeaderTitle, customColumnStyle } = props;
     const { columns } = schema;
 
     // Generate header label dictionary
@@ -278,8 +278,19 @@ function SmartTable(props) {
                                     }}>
                                     {Object.keys(item).map((key, index) => {
                                         if (headerLabelDict[key]) {
+                                            let customStyle = {};
+                                            if (
+                                                customColumnStyle &&
+                                                customColumnStyle[key]
+                                            ) {
+                                                customStyle =
+                                                    customColumnStyle[key];
+                                            }
+
                                             return (
-                                                <TableData key={index}>
+                                                <TableData
+                                                    key={index}
+                                                    style={customStyle}>
                                                     {item[key]}
                                                 </TableData>
                                             );

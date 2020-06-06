@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import TextareaAutosize from 'react-textarea-autosize';
 import InputType from '../constants/InputType';
 
 const Wrapper = styled.div`
@@ -69,10 +70,26 @@ const InputValue = styled.input`
     flex: 2;
     font-size: 16px;
     color: #000000;
-    ${props => props.disabled && `
+    ${(props) =>
+        props.disabled &&
+        `
         cursor: no-drop;
         background-color: #dddddd;
     `}
+`;
+
+const InputValueTextarea = styled(TextareaAutosize)`
+    flex: 2;
+    font-size: 16px;
+    color: #000000;
+    ${(props) =>
+        props.disabled &&
+        `
+        cursor: no-drop;
+        background-color: #dddddd;
+    `}
+    overflow: auto;
+    resize: none;
 `;
 
 const Footer = styled.div`
@@ -144,6 +161,44 @@ function Dialog(props) {
     }, {});
     const [valueDict, setValueDict] = useState(initialValueDict);
 
+    function renderInputValue(column) {
+        if (column.type === 'String') {
+            return (
+                <InputValueTextarea
+                    value={valueDict[column.name]}
+                    disabled={!column.updatable}
+                    onChange={(event) => {
+                        setValueDict({
+                            ...valueDict,
+                            // [column.name]: value,
+                            [column.name]: event.target.value,
+                        });
+                    }}
+                />
+            );
+        } else {
+            return (
+                <InputValue
+                    type={InputType.TEXT}
+                    value={valueDict[column.name]}
+                    disabled={!column.updatable}
+                    onChange={(event) => {
+                        // let value = event.target.value;
+                        // if (column.type === InputType.NUMBER) {
+                        //     value = Number(value);
+                        // }
+
+                        setValueDict({
+                            ...valueDict,
+                            // [column.name]: value,
+                            [column.name]: event.target.value,
+                        });
+                    }}
+                />
+            );
+        }
+    }
+
     return (
         <Wrapper>
             <DialogWrapper>
@@ -156,23 +211,7 @@ function Dialog(props) {
                         return (
                             <InputContainer key={column.name}>
                                 <InputName>{column.name}</InputName>
-                                <InputValue
-                                    type={/* column.type || */InputType.TEXT}
-                                    value={valueDict[column.name]}
-                                    disabled={!column.updatable}
-                                    onChange={(event) => {
-                                        // let value = event.target.value;
-                                        // if (column.type === InputType.NUMBER) {
-                                        //     value = Number(value);
-                                        // }
-
-                                        setValueDict({
-                                            ...valueDict,
-                                            // [column.name]: value,
-                                            [column.name]: event.target.value,
-                                        });
-                                    }}
-                                />
+                                {renderInputValue(column)}
                             </InputContainer>
                         );
                     })}
