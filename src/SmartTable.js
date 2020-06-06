@@ -73,7 +73,13 @@ const ErrorText = styled.div`
 `;
 
 function SmartTable(props) {
-    const { title, schema, customHeaderTitle, customColumnStyle } = props;
+    const {
+        title,
+        schema,
+        customHeaderTitle,
+        customColumnStyle,
+        customColumns,
+    } = props;
     const { columns } = schema;
 
     // Generate header label dictionary
@@ -250,7 +256,8 @@ function SmartTable(props) {
                                 Object.keys(headerLabelDict).map(
                                     (key, index) => {
                                         return (
-                                            <TableHeaderData key={index}>
+                                            <TableHeaderData
+                                                key={`header-${index}`}>
                                                 <Button
                                                     onClick={() => {
                                                         alert(
@@ -264,6 +271,25 @@ function SmartTable(props) {
                                         );
                                     }
                                 )}
+
+                            {/* Header for custom columns */}
+                            {customColumns &&
+                                customColumns.length > 0 &&
+                                customColumns.map((customColumn, index) => {
+                                    return (
+                                        <TableHeaderData
+                                            key={`custom-header-${index}`}>
+                                            <Button
+                                                onClick={() => {
+                                                    alert(
+                                                        `${customColumn.headerTitle} clicked!`
+                                                    );
+                                                }}>
+                                                {customColumn.headerTitle}
+                                            </Button>
+                                        </TableHeaderData>
+                                    );
+                                })}
                         </TableHeader>
                     </TableHead>
 
@@ -289,13 +315,36 @@ function SmartTable(props) {
 
                                             return (
                                                 <TableData
-                                                    key={index}
+                                                    key={`data-${index}`}
                                                     style={customStyle}>
                                                     {item[key]}
                                                 </TableData>
                                             );
                                         }
                                     })}
+
+                                    {/* Data for custom columns */}
+                                    {customColumns &&
+                                        customColumns.length > 0 &&
+                                        customColumns.map(
+                                            (customColumn, index) => {
+                                                const Component =
+                                                    customColumn.component;
+
+                                                if (!Component) {
+                                                    return null;
+                                                }
+
+                                                return (
+                                                    <TableData
+                                                        key={`custom-data-${index}`}>
+                                                        <Component
+                                                            item={item}
+                                                        />
+                                                    </TableData>
+                                                );
+                                            }
+                                        )}
                                 </TableRow>
                             );
                         })}

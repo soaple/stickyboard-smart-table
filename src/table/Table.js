@@ -48,9 +48,10 @@ export const TableHeader = styled.tr`
 
 export const TableHeaderData = styled.th`
     /* padding: 8px 12px; */
+    z-index: 10;
     position: sticky;
     top: 0;
-    /* background-color: white; */
+    background-color: white;
     overflow: hidden;
     white-space: nowrap;
     font-size: 18px;
