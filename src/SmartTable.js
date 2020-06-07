@@ -30,6 +30,7 @@ import TablePagination from './table/TablePagination';
 import Dialog from './dialog/Dialog';
 import Button from './button/Button';
 import InputType from './constants/InputType';
+import OrderMethod from './constants/OrderMethod';
 import { RefreshIcon, CreateIcon, DeleteIcon } from './IconSet';
 
 const Wrapper = styled.div``;
@@ -79,6 +80,8 @@ function SmartTable(props) {
         customHeaderTitle,
         customColumnStyle,
         customColumns,
+        initialOrderColumn,
+        initialOrderMethod,
     } = props;
     const { columns } = schema;
 
@@ -100,6 +103,13 @@ function SmartTable(props) {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedItem, setSelectedItem] = useState(null);
     const [showDialog, setShowDialog] = useState(false);
+    const [orderColumn, setOrderColumn] = useState(
+        initialOrderColumn ||
+            (columns && columns.length > 0 ? columns[0].name : null)
+    );
+    const [orderMethod, setOrderMethod] = useState(
+        initialOrderMethod || OrderMethod.ASC
+    );
 
     // Extract data from GraphQL schema
     const readQueryName = useMemo(() => schema.query.read.split('(')[0], [
@@ -126,7 +136,9 @@ function SmartTable(props) {
                 columns,
                 readItemsQueryName,
                 rowsPerPage * (currentPage - 1), // offset
-                rowsPerPage // limit
+                rowsPerPage, // limit
+                orderColumn,
+                orderMethod
             )}
         `
     );
@@ -162,7 +174,9 @@ function SmartTable(props) {
                 columns,
                 readItemsQueryName,
                 rowsPerPage * (currentPage - 1), // offset
-                rowsPerPage // limit
+                rowsPerPage, // limit
+                orderColumn,
+                orderMethod
             );
 
             const params = {
@@ -219,6 +233,21 @@ function SmartTable(props) {
 
     const isDialogCreateMode = selectedItem === null;
 
+    function onHeaderDataClick(columnName) {
+        if (orderColumn === columnName) {
+            if (orderMethod === null) {
+                setOrderMethod(OrderMethod.ASC);
+            } else if (orderMethod === OrderMethod.ASC) {
+                setOrderMethod(OrderMethod.DESC);
+            } else {
+                setOrderMethod(null);
+            }
+        } else {
+            setOrderColumn(columnName);
+            setOrderMethod(OrderMethod.ASC);
+        }
+    }
+
     return (
         <TableWrapper>
             {/* Table Toolbar */}
@@ -254,19 +283,28 @@ function SmartTable(props) {
                         <TableHeader>
                             {rows.length > 0 &&
                                 Object.keys(headerLabelDict).map(
-                                    (key, index) => {
+                                    (columnName, index) => {
                                         return (
                                             <TableHeaderData
                                                 key={`header-${index}`}>
                                                 <Button
                                                     onClick={() => {
-                                                        alert(
-                                                            `${key} clicked!`
+                                                        onHeaderDataClick(
+                                                            columnName
                                                         );
-                                                    }}>
-                                                    {headerLabelDict[key] ||
-                                                        key.toUpperCase()}
-                                                </Button>
+                                                    }}
+                                                    title={
+                                                        headerLabelDict[
+                                                            columnName
+                                                        ] ||
+                                                        columnName.toUpperCase()
+                                                    }
+                                                    isOrderColumn={
+                                                        orderColumn ===
+                                                        columnName
+                                                    }
+                                                    orderMethod={orderMethod}
+                                                />
                                             </TableHeaderData>
                                         );
                                     }

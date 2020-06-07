@@ -47,12 +47,29 @@ const QueryGenerator = {
         `;
     },
 
-    generateReadItemsQuery: (columns, readItemsQueryName, offset, limit) => {
+    generateReadItemsQuery: (
+        columns,
+        readItemsQueryName,
+        offset,
+        limit,
+        orderColumn = null,
+        orderMethod = null
+    ) => {
+        // Generate order condition
+        let orderCondition = '';
+        if (orderColumn && orderMethod) {
+            orderCondition = `,
+                order_column: "${orderColumn}",
+                order_method: "${orderMethod}"
+            `;
+        }
+
         return `
             query {
                 ${readItemsQueryName}(
                     offset: ${offset},
                     limit: ${limit}
+                    ${orderCondition}
                 ) {
                     count
                     rows {

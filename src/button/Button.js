@@ -1,8 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
+import OrderMethod from '../constants/OrderMethod';
 
 const Wrapper = styled.div`
-    padding: 8px 12px;
+    position: relative;
+    padding: 8px 24px;
     background-color: transparent;
     -webkit-transition: all 0.2s ease-in-out;
     transition: all 0.2s ease-in-out;
@@ -21,12 +23,34 @@ const Title = styled.div`
     font-size: 16px;
 `;
 
+const OrderIcon = styled.div`
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    font-size: 16px;
+`;
+
 function Button(props) {
-    const { onClick, children } = props;
+    const { onClick, title, isOrderColumn, orderMethod } = props;
+
+    function renderOrderIcon() {
+        if (!isOrderColumn) {
+            return null;
+        }
+
+        if (orderMethod === OrderMethod.ASC) {
+            return <OrderIcon>⬆︎</OrderIcon>;
+        } else if (orderMethod === OrderMethod.DESC) {
+            return <OrderIcon>⬇︎</OrderIcon>;
+        } else {
+            return null;
+        }
+    }
 
     return (
         <Wrapper onClick={onClick}>
-            <Title>{children}</Title>
+            <Title>{title}</Title>
+            {renderOrderIcon()}
         </Wrapper>
     );
 }
