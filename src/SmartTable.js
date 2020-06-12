@@ -79,6 +79,7 @@ function SmartTable(props) {
         schema,
         customHeaderTitle,
         customColumnStyle,
+        customColumnFormatter,
         customColumns,
         initialOrderColumn,
         initialOrderMethod,
@@ -351,11 +352,24 @@ function SmartTable(props) {
                                                     customColumnStyle[key];
                                             }
 
+                                            let customFormatter = null;
+                                            if (
+                                                customColumnFormatter &&
+                                                customColumnFormatter[key]
+                                            ) {
+                                                customFormatter =
+                                                    customColumnFormatter[key];
+                                            }
+
                                             return (
                                                 <TableData
                                                     key={`data-${index}`}
                                                     style={customStyle}>
-                                                    {item[key]}
+                                                    {customFormatter
+                                                        ? customFormatter(
+                                                              item[key]
+                                                          )
+                                                        : item[key]}
                                                 </TableData>
                                             );
                                         }
