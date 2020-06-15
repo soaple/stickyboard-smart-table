@@ -1,6 +1,6 @@
 // src/SmartTable.js
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
@@ -28,6 +28,8 @@ import {
 } from './table/Table';
 import TablePagination from './table/TablePagination';
 import Dialog from './dialog/Dialog';
+import FilterOptions from './filter/FilterOptions';
+import SimpleButton from './button/SimpleButton';
 import Button from './button/Button';
 import InputType from './constants/InputType';
 import OrderMethod from './constants/OrderMethod';
@@ -73,6 +75,12 @@ const ErrorText = styled.div`
     color: #e33b3b;
 `;
 
+const FilterOptionsContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+`;
+
 function SmartTable(props) {
     const {
         title,
@@ -111,6 +119,8 @@ function SmartTable(props) {
     const [orderMethod, setOrderMethod] = useState(
         initialOrderMethod || OrderMethod.ASC
     );
+    const [filterOptions, setFilterOptions] = useState([]);
+    const filterOptionsRef = useRef(null);
 
     // Extract data from GraphQL schema
     const readQueryName = useMemo(() => schema.query.read.split('(')[0], [
@@ -138,6 +148,7 @@ function SmartTable(props) {
                 readItemsQueryName,
                 rowsPerPage * (currentPage - 1), // offset
                 rowsPerPage, // limit
+                filterOptions,
                 orderColumn,
                 orderMethod
             )}
@@ -176,6 +187,7 @@ function SmartTable(props) {
                 readItemsQueryName,
                 rowsPerPage * (currentPage - 1), // offset
                 rowsPerPage, // limit
+                filterOptions,
                 orderColumn,
                 orderMethod
             );
@@ -275,6 +287,19 @@ function SmartTable(props) {
                     </ClickableContainer>
                 )}
             </TableToolbar>
+
+            {/* Filter options */}
+            <FilterOptionsContainer>
+                <FilterOptions ref={filterOptionsRef} columns={columns} />
+                <SimpleButton
+                    onClick={() => {
+                        if (filterOptionsRef.current) {
+                            const filterOptions = filterOptionsRef.current.getOptions();
+                            setFilterOptions(filterOptions);
+                        }
+                    }}
+                    title={'Search'}></SimpleButton>
+            </FilterOptionsContainer>
 
             {/* Table Content (Horizontally scrollable) */}
             <TableContent>

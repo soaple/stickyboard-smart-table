@@ -52,9 +52,28 @@ const QueryGenerator = {
         readItemsQueryName,
         offset,
         limit,
+        filterOptions = [],
         orderColumn = null,
         orderMethod = null
     ) => {
+        // Generate filter conditions
+        let filterConditions = '';
+        if (filterOptions.length > 0) {
+            let filterOptionArray = filterOptions.map((filterOption) => {
+                return `
+                    {
+                        filterDataType: "${filterOption.filterDataType}"
+                        filterColumnName: "${filterOption.filterColumnName}"
+                        filterColumnValue: "${filterOption.filterColumnValue}"
+                    }
+                `;
+            });
+
+            filterConditions = `,
+                filter_options: [${filterOptionArray.join(',')}]
+            `;
+        }
+
         // Generate order condition
         let orderCondition = '';
         if (orderColumn && orderMethod) {
@@ -69,6 +88,7 @@ const QueryGenerator = {
                 ${readItemsQueryName}(
                     offset: ${offset},
                     limit: ${limit}
+                    ${filterConditions}
                     ${orderCondition}
                 ) {
                     count

@@ -1,27 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
+import SimpleButton from './SimpleButton';
 import OrderMethod from '../constants/OrderMethod';
-
-const Wrapper = styled.div`
-    position: relative;
-    padding: 8px 24px;
-    background-color: transparent;
-    -webkit-transition: all 0.2s ease-in-out;
-    transition: all 0.2s ease-in-out;
-    border-radius: 8px;
-    :hover {
-        cursor: pointer;
-        box-shadow: 0 0 4px 0 #eeeeee;
-        background-color: #eeeeee;
-    }
-    :active {
-        background-color: #cccccc;
-    }
-`;
-
-const Title = styled.div`
-    font-size: 16px;
-`;
 
 const OrderIcon = styled.div`
     position: absolute;
@@ -48,10 +28,9 @@ function Button(props) {
     }
 
     return (
-        <Wrapper onClick={onClick}>
-            <Title>{title}</Title>
+        <SimpleButton onClick={onClick} title={title}>
             {renderOrderIcon()}
-        </Wrapper>
+        </SimpleButton>
     );
 }
 
