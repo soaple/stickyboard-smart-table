@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import SimpleButton from '../button/SimpleButton';
+import { RemoveIcon } from '../IconSet';
 
 const Wrapper = styled.div``;
 
@@ -11,7 +12,9 @@ const SelectContainer = styled.div`
     justify-content: flex-start;
 `;
 
-const Select = styled.select``;
+const Select = styled.select`
+    padding: 4px 0px;
+`;
 
 const FilterValueInput = styled.input``;
 
@@ -62,9 +65,9 @@ function FilterOptionItem(props) {
                     }}
                 />
 
-                <SimpleButton
-                    onClick={onDelete}
-                    title={'DELETE'}></SimpleButton>
+                <SimpleButton onClick={onDelete} padding={8}>
+                    <RemoveIcon width={28} height={28} fill={'#000000'} />
+                </SimpleButton>
             </SelectContainer>
         </Wrapper>
     );

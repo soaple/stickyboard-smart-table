@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import FilterOptionItem from './FilterOptionItem';
 import SimpleButton from '../button/SimpleButton';
+import { FilterIcon, AddIcon, SearchIcon } from '../IconSet';
 
 const Wrapper = styled.div`
     position: relative;
-    padding: 8px 16px;
+    padding: 8px;
     flex: 1;
     display: flex;
     flex-direction: row;
@@ -13,6 +14,16 @@ const Wrapper = styled.div`
     justify-content: center;
     border: 1px solid #cccccc;
     border-radius: 8px;
+`;
+
+const FilterIconContainer = styled.div`
+    width: 44px;
+    height: 44px;
+    margin-right: 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
 `;
 
 const Title = styled.div`
@@ -59,7 +70,9 @@ class FilterOptions extends React.Component {
 
         return (
             <Wrapper>
-                <Title>Filter</Title>
+                <FilterIconContainer>
+                    <FilterIcon width={28} height={28} fill={'#000000'} />
+                </FilterIconContainer>
 
                 {/* Filter options */}
                 <FilterOptionItemContainer>
@@ -108,7 +121,9 @@ class FilterOptions extends React.Component {
                             ],
                         });
                     }}
-                    title={'ADD'}></SimpleButton>
+                    padding={8}>
+                    <AddIcon width={28} height={28} fill={'#000000'} />
+                </SimpleButton>
             </Wrapper>
         );
     }

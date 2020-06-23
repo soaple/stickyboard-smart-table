@@ -10,6 +10,7 @@ import { ApolloProvider, useQuery, useMutation } from '@apollo/react-hooks';
 import gql from 'graphql-tag';
 import QueryGenerator from './utils/QueryGenerator';
 // import QueryManager from './QueryManager';
+import { SearchIcon } from './IconSet';
 
 import {
     TableWrapper,
@@ -222,7 +223,7 @@ function SmartTable(props) {
     }, [selectedItem]);
 
     // if (loading && !data) {
-    if (loading) {
+    if (loading && filterOptions.length === 0) {
         return (
             <LoadingWrapper>
                 <LoadingText>Loading...</LoadingText>
@@ -290,15 +291,20 @@ function SmartTable(props) {
 
             {/* Filter options */}
             <FilterOptionsContainer>
-                <FilterOptions ref={filterOptionsRef} columns={columns} />
+                <FilterOptions
+                    ref={filterOptionsRef}
+                    columns={columns}
+                />
                 <SimpleButton
                     onClick={() => {
                         if (filterOptionsRef.current) {
                             const filterOptions = filterOptionsRef.current.getOptions();
                             setFilterOptions(filterOptions);
+                            setCurrentPage(1);
                         }
-                    }}
-                    title={'Search'}></SimpleButton>
+                    }}>
+                    <SearchIcon width={28} height={28} fill={'#000000'} />
+                </SimpleButton>
             </FilterOptionsContainer>
 
             {/* Table Content (Horizontally scrollable) */}
@@ -426,7 +432,11 @@ function SmartTable(props) {
                             );
                         })}
 
-                        {emptyRows > 0 && <TableRowEmpty />}
+                        {emptyRows > 0 && (
+                            <TableRowEmpty
+                                height={`${(emptyRows / rowsPerPage) * 100}%`}
+                            />
+                        )}
                     </TableBody>
                 </Table>
             </TableContent>

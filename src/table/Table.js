@@ -82,8 +82,8 @@ export const TableRow = styled.tr`
     }
 `;
 
-export const TableRowEmpty = styled.div`
-    flex: 1;
+export const TableRowEmpty = styled.tr`
+    height: ${props => props.height};
 `;
 
 export const TableData = styled.td`

@@ -3,7 +3,11 @@ import styled from 'styled-components';
 
 const Wrapper = styled.div`
     position: relative;
-    padding: 8px 24px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: ${(props) => (props.padding ? `${props.padding}px` : '8px 24px')};
     background-color: transparent;
     -webkit-transition: all 0.2s ease-in-out;
     transition: all 0.2s ease-in-out;
@@ -23,11 +27,11 @@ const Title = styled.div`
 `;
 
 function SimpleButton(props) {
-    const { onClick, title, children } = props;
+    const { onClick, title, padding, children } = props;
 
     return (
-        <Wrapper onClick={onClick}>
-            <Title>{title}</Title>
+        <Wrapper onClick={onClick} padding={padding}>
+            {title && <Title>{title}</Title>}
             {children}
         </Wrapper>
     );
