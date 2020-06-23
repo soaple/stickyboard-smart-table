@@ -1,6 +1,6 @@
 {
     "name": "@stickyboard/smart-table",
-    "version": "0.1.2",
+    "version": "0.1.20",
     "description": "Smart table component for StickyBoard",
     "main": "dist/index.js",
     "scripts": {
