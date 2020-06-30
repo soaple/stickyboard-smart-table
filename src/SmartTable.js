@@ -8,6 +8,14 @@ import ApolloClient from 'apollo-boost';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloProvider, useQuery, useMutation } from '@apollo/react-hooks';
 import gql from 'graphql-tag';
+
+import {
+    StylesProvider,
+    createGenerateClassName,
+} from '@material-ui/core/styles';
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import DateFnsUtils from '@date-io/date-fns';
+
 import QueryGenerator from './utils/QueryGenerator';
 // import QueryManager from './QueryManager';
 import { SearchIcon } from './IconSet';
@@ -35,6 +43,11 @@ import Button from './button/Button';
 import InputType from './constants/InputType';
 import OrderMethod from './constants/OrderMethod';
 import { RefreshIcon, CreateIcon, DeleteIcon } from './IconSet';
+
+const generateClassName = createGenerateClassName({
+    disableGlobal: true,
+    productionPrefix: 'smart-table',
+});
 
 const Wrapper = styled.div``;
 
@@ -94,6 +107,15 @@ function SmartTable(props) {
         initialOrderMethod,
     } = props;
     const { columns } = schema;
+
+    // Generate column dictionary
+    const columnDict = useMemo(() => {
+        let initialColumnDict = {};
+        columns.forEach((column) => {
+            initialColumnDict[column.name] = column;
+        });
+        return initialColumnDict;
+    }, [columns]);
 
     // Generate header label dictionary
     const headerLabelDict = useMemo(() => {
@@ -291,10 +313,7 @@ function SmartTable(props) {
 
             {/* Filter options */}
             <FilterOptionsContainer>
-                <FilterOptions
-                    ref={filterOptionsRef}
-                    columns={columns}
-                />
+                <FilterOptions ref={filterOptionsRef} columns={columns} />
                 <SimpleButton
                     onClick={() => {
                         if (filterOptionsRef.current) {
@@ -365,42 +384,50 @@ function SmartTable(props) {
 
                     {/* Table Body */}
                     <TableBody>
-                        {rows.map((item, index) => {
+                        {rows.map((row, index) => {
                             return (
                                 <TableRow
                                     key={index}
                                     onClick={() => {
-                                        setSelectedItem(item);
+                                        setSelectedItem(row);
                                     }}>
-                                    {Object.keys(item).map((key, index) => {
-                                        if (headerLabelDict[key]) {
+                                    {Object.keys(row).map((columnName, index) => {
+                                        const column = columnDict[columnName];
+                                        const value = row[columnName];
+
+                                        if (headerLabelDict[columnName]) {
                                             let customStyle = {};
                                             if (
                                                 customColumnStyle &&
-                                                customColumnStyle[key]
+                                                customColumnStyle[columnName]
                                             ) {
                                                 customStyle =
-                                                    customColumnStyle[key];
+                                                    customColumnStyle[columnName];
                                             }
 
                                             let customFormatter = null;
                                             if (
                                                 customColumnFormatter &&
-                                                customColumnFormatter[key]
+                                                customColumnFormatter[columnName]
                                             ) {
                                                 customFormatter =
-                                                    customColumnFormatter[key];
+                                                    customColumnFormatter[columnName];
+                                            }
+
+                                            let renderValue = value;
+                                            if (column.type === 'Date') {
+                                                renderValue = new Date(value).toLocaleString();
+                                            } else if (customFormatter) {
+                                                renderValue = customFormatter(
+                                                    value
+                                                );
                                             }
 
                                             return (
                                                 <TableData
                                                     key={`data-${index}`}
                                                     style={customStyle}>
-                                                    {customFormatter
-                                                        ? customFormatter(
-                                                              item[key]
-                                                          )
-                                                        : item[key]}
+                                                    {renderValue}
                                                 </TableData>
                                             );
                                         }
@@ -421,9 +448,7 @@ function SmartTable(props) {
                                                 return (
                                                     <TableData
                                                         key={`custom-data-${index}`}>
-                                                        <Component
-                                                            item={item}
-                                                        />
+                                                        <Component item={row} />
                                                     </TableData>
                                                 );
                                             }
@@ -510,7 +535,13 @@ const SmartTableWithApollo = (props) => {
 
     return (
         <ApolloProvider client={apolloClient}>
-            <SmartTable {...props} />
+            <StylesProvider
+                generateClassName={generateClassName}
+                injectFirst={true}>
+                <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                    <SmartTable {...props} />
+                </MuiPickersUtilsProvider>
+            </StylesProvider>
         </ApolloProvider>
     );
 };

@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import {
+    // DatePicker,
+    // TimePicker,
+    // DateTimePicker,
+    KeyboardDateTimePicker,
+} from '@material-ui/pickers';
 import TextareaAutosize from 'react-textarea-autosize';
 import InputType from '../constants/InputType';
 
@@ -161,6 +167,7 @@ function Dialog(props) {
         return acc;
     }, {});
     const [valueDict, setValueDict] = useState(initialValueDict);
+    console.log('valueDict', valueDict)
 
     function renderInputValue(column) {
         if (column.type === 'String') {
@@ -173,6 +180,27 @@ function Dialog(props) {
                             ...valueDict,
                             // [column.name]: value,
                             [column.name]: event.target.value,
+                        });
+                    }}
+                />
+            );
+        } else if (column.type === 'Date') {
+            return (
+                <KeyboardDateTimePicker
+                    format="yyyy-MM-dd HH:mm:ss"
+                    value={valueDict[column.name]}
+                    variant="inline"
+                    autoOk
+                    cancelLabel={'CANCEL'}
+                    okLabel={'OK'}
+                    hintText={''}
+                    dialogContainerStyle={null}
+                    underlineShow={false}
+                    onChange={(dateTime) => {
+                        console.log(dateTime.__proto__, dateTime);
+                        setValueDict({
+                            ...valueDict,
+                            [column.name]: dateTime,
                         });
                     }}
                 />
