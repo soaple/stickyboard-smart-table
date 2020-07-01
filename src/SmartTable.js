@@ -100,6 +100,7 @@ function SmartTable(props) {
         title,
         schema,
         customHeaderTitle,
+        customColumnRenderer,
         customColumnStyle,
         customColumnFormatter,
         customColumns,
@@ -398,6 +399,19 @@ function SmartTable(props) {
                                             const value = row[columnName];
 
                                             if (headerLabelDict[columnName]) {
+                                                let customRenderer;
+                                                if (
+                                                    customColumnRenderer &&
+                                                    customColumnRenderer[
+                                                        columnName
+                                                    ]
+                                                ) {
+                                                    customRenderer =
+                                                        customColumnRenderer[
+                                                            columnName
+                                                        ];
+                                                }
+
                                                 let customStyle = {};
                                                 if (
                                                     customColumnStyle &&
@@ -439,7 +453,11 @@ function SmartTable(props) {
                                                     <TableData
                                                         key={`data-${index}`}
                                                         style={customStyle}>
-                                                        {renderValue}
+                                                        {customRenderer
+                                                            ? customRenderer(
+                                                                  renderValue
+                                                              )
+                                                            : renderValue}
                                                     </TableData>
                                                 );
                                             }
