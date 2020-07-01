@@ -95,9 +95,11 @@ const QueryGenerator = {
                     rows {
                         ${columns
                             .map((column) => {
-                                // if (column.show) {
-                                return column.name;
-                                // }
+                                if (column.subfields) {
+                                    return `${column.name} ${column.subfields}`;
+                                } else {
+                                    return column.name;
+                                }
                             })
                             .join('\n')}
                     }
