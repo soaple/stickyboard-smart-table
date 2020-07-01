@@ -373,9 +373,9 @@ function SmartTable(props) {
                                                     alert(
                                                         `${customColumn.headerTitle} clicked!`
                                                     );
-                                                }}>
-                                                {customColumn.headerTitle}
-                                            </Button>
+                                                }}
+                                                title={customColumn.headerTitle}
+                                            />
                                         </TableHeaderData>
                                     );
                                 })}
@@ -391,47 +391,60 @@ function SmartTable(props) {
                                     onClick={() => {
                                         setSelectedItem(row);
                                     }}>
-                                    {Object.keys(row).map((columnName, index) => {
-                                        const column = columnDict[columnName];
-                                        const value = row[columnName];
+                                    {Object.keys(row).map(
+                                        (columnName, index) => {
+                                            const column =
+                                                columnDict[columnName];
+                                            const value = row[columnName];
 
-                                        if (headerLabelDict[columnName]) {
-                                            let customStyle = {};
-                                            if (
-                                                customColumnStyle &&
-                                                customColumnStyle[columnName]
-                                            ) {
-                                                customStyle =
-                                                    customColumnStyle[columnName];
-                                            }
+                                            if (headerLabelDict[columnName]) {
+                                                let customStyle = {};
+                                                if (
+                                                    customColumnStyle &&
+                                                    customColumnStyle[
+                                                        columnName
+                                                    ]
+                                                ) {
+                                                    customStyle =
+                                                        customColumnStyle[
+                                                            columnName
+                                                        ];
+                                                }
 
-                                            let customFormatter = null;
-                                            if (
-                                                customColumnFormatter &&
-                                                customColumnFormatter[columnName]
-                                            ) {
-                                                customFormatter =
-                                                    customColumnFormatter[columnName];
-                                            }
+                                                let customFormatter = null;
+                                                if (
+                                                    customColumnFormatter &&
+                                                    customColumnFormatter[
+                                                        columnName
+                                                    ]
+                                                ) {
+                                                    customFormatter =
+                                                        customColumnFormatter[
+                                                            columnName
+                                                        ];
+                                                }
 
-                                            let renderValue = value;
-                                            if (column.type === 'Date') {
-                                                renderValue = new Date(value).toLocaleString();
-                                            } else if (customFormatter) {
-                                                renderValue = customFormatter(
-                                                    value
+                                                let renderValue = value;
+                                                if (column.type === 'Date') {
+                                                    renderValue = new Date(
+                                                        value
+                                                    ).toLocaleString();
+                                                } else if (customFormatter) {
+                                                    renderValue = customFormatter(
+                                                        value
+                                                    );
+                                                }
+
+                                                return (
+                                                    <TableData
+                                                        key={`data-${index}`}
+                                                        style={customStyle}>
+                                                        {renderValue}
+                                                    </TableData>
                                                 );
                                             }
-
-                                            return (
-                                                <TableData
-                                                    key={`data-${index}`}
-                                                    style={customStyle}>
-                                                    {renderValue}
-                                                </TableData>
-                                            );
                                         }
-                                    })}
+                                    )}
 
                                     {/* Data for custom columns */}
                                     {customColumns &&
