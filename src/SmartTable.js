@@ -326,7 +326,12 @@ function SmartTable(props) {
 
             {/* Filter options */}
             <FilterOptionsContainer>
-                <FilterOptions ref={filterOptionsRef} columns={columns} />
+                <FilterOptions
+                    ref={filterOptionsRef}
+                    columns={columns.filter((column) => {
+                        return isScalarData(column.type);
+                    })}
+                />
                 <SimpleButton
                     onClick={() => {
                         if (filterOptionsRef.current) {
