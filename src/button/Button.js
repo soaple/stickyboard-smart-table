@@ -11,7 +11,7 @@ const OrderIcon = styled.div`
 `;
 
 function Button(props) {
-    const { onClick, title, isOrderColumn, orderMethod } = props;
+    const { isClickable, onClick, title, isOrderColumn, orderMethod } = props;
 
     function renderOrderIcon() {
         if (!isOrderColumn) {
@@ -28,7 +28,7 @@ function Button(props) {
     }
 
     return (
-        <SimpleButton onClick={onClick} title={title}>
+        <SimpleButton isClickable={isClickable} onClick={onClick} title={title}>
             {renderOrderIcon()}
         </SimpleButton>
     );

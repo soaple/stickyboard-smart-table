@@ -95,6 +95,18 @@ const FilterOptionsContainer = styled.div`
     align-items: center;
 `;
 
+function isScalarData(columnType) {
+    if (
+        columnType === 'Int' ||
+        columnType === 'String' ||
+        columnType === 'Date'
+    ) {
+        return true;
+    }
+
+    return false;
+}
+
 function SmartTable(props) {
     const {
         title,
@@ -336,14 +348,26 @@ function SmartTable(props) {
                             {rows.length > 0 &&
                                 Object.keys(headerLabelDict).map(
                                     (columnName, index) => {
+                                        const column = columnDict[columnName];
+                                        const isSortable = isScalarData(
+                                            column.type
+                                        );
+
                                         return (
                                             <TableHeaderData
                                                 key={`header-${index}`}>
                                                 <Button
+                                                    isClickable={isSortable}
                                                     onClick={() => {
-                                                        onHeaderDataClick(
-                                                            columnName
-                                                        );
+                                                        if (isSortable) {
+                                                            onHeaderDataClick(
+                                                                columnName
+                                                            );
+                                                        } else {
+                                                            alert(
+                                                                'This is not a sortable column!'
+                                                            );
+                                                        }
                                                     }}
                                                     title={
                                                         headerLabelDict[
@@ -439,12 +463,23 @@ function SmartTable(props) {
                                                 }
 
                                                 let renderValue = value;
-                                                if (column.type === 'Date') {
+                                                if (customFormatter) {
+                                                    renderValue = customFormatter(
+                                                        value
+                                                    );
+                                                } else if (
+                                                    column.type === 'Date'
+                                                ) {
                                                     renderValue = new Date(
                                                         value
                                                     ).toLocaleString();
-                                                } else if (customFormatter) {
-                                                    renderValue = customFormatter(
+                                                } else if (
+                                                    !isScalarData(
+                                                        column.type
+                                                    ) &&
+                                                    !customRenderer
+                                                ) {
+                                                    renderValue = JSON.stringify(
                                                         value
                                                     );
                                                 }
@@ -479,7 +514,12 @@ function SmartTable(props) {
                                                 return (
                                                     <TableData
                                                         key={`custom-data-${index}`}>
-                                                        <Component item={row} />
+                                                        <Component
+                                                            item={row}
+                                                            refetch={() =>
+                                                                refetch()
+                                                            }
+                                                        />
                                                     </TableData>
                                                 );
                                             }

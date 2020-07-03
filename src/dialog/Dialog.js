@@ -167,7 +167,6 @@ function Dialog(props) {
         return acc;
     }, {});
     const [valueDict, setValueDict] = useState(initialValueDict);
-    console.log('valueDict', valueDict)
 
     function renderInputValue(column) {
         if (column.type === 'String') {

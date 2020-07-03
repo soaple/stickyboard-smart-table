@@ -12,12 +12,24 @@ const Wrapper = styled.div`
     -webkit-transition: all 0.2s ease-in-out;
     transition: all 0.2s ease-in-out;
     border-radius: 8px;
-    :hover {
-        cursor: pointer;
-        box-shadow: 0 0 4px 0 #eeeeee;
-        background-color: #eeeeee;
-    }
-    :active {
+    ${(props) => {
+            if (props.isClickable) {
+                return `
+                    :hover {
+                        cursor: pointer;
+                        box-shadow: 0 0 4px 0 #eeeeee;
+                        background-color: #eeeeee;
+                    }
+                `;
+            } else {
+                return `
+                    :hover {
+                        cursor: no-drop;
+                    }
+                `;
+            }
+        }}
+        :active {
         background-color: #cccccc;
     }
 `;
@@ -27,10 +39,13 @@ const Title = styled.div`
 `;
 
 function SimpleButton(props) {
-    const { onClick, title, padding, children } = props;
+    const { isClickable, onClick, title, padding, children } = props;
 
     return (
-        <Wrapper onClick={onClick} padding={padding}>
+        <Wrapper
+            isClickable={isClickable !== undefined ? isClickable : true}
+            onClick={onClick}
+            padding={padding}>
             {title && <Title>{title}</Title>}
             {children}
         </Wrapper>
