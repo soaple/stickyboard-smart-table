@@ -152,9 +152,11 @@ function Dialog(props) {
     const initialValueDict = columns.reduce((acc, column) => {
         const columnName = column.name;
         if (data && data[columnName]) {
-            if (column.type === InputType.NUMBER) {
+            if (column.type === 'String') {
                 acc[columnName] = data[columnName];
-            } else if (column.type === InputType.DATE) {
+            } else if (column.type === 'Int') {
+                acc[columnName] = new Number(data[columnName]);
+            } else if (column.type === 'Date') {
                 // acc[columnName] = new Date(data[columnName]);
                 acc[columnName] = data[columnName];
             } else {
@@ -177,8 +179,21 @@ function Dialog(props) {
                     onChange={(event) => {
                         setValueDict({
                             ...valueDict,
-                            // [column.name]: value,
                             [column.name]: event.target.value,
+                        });
+                    }}
+                />
+            );
+        } else if (column.type === 'Int') {
+            return (
+                <InputValue
+                    type={InputType.NUMBER}
+                    value={valueDict[column.name]}
+                    disabled={!column.updatable}
+                    onChange={(event) => {
+                        setValueDict({
+                            ...valueDict,
+                            [column.name]: new Number(event.target.value),
                         });
                     }}
                 />
@@ -196,7 +211,6 @@ function Dialog(props) {
                     dialogContainerStyle={null}
                     underlineShow={false}
                     onChange={(dateTime) => {
-                        console.log(dateTime.__proto__, dateTime);
                         setValueDict({
                             ...valueDict,
                             [column.name]: dateTime,
@@ -211,14 +225,8 @@ function Dialog(props) {
                     value={valueDict[column.name]}
                     disabled={!column.updatable}
                     onChange={(event) => {
-                        // let value = event.target.value;
-                        // if (column.type === InputType.NUMBER) {
-                        //     value = Number(value);
-                        // }
-
                         setValueDict({
                             ...valueDict,
-                            // [column.name]: value,
                             [column.name]: event.target.value,
                         });
                     }}
@@ -238,7 +246,9 @@ function Dialog(props) {
                     {columns.map((column, index) => {
                         return (
                             <InputContainer key={column.name}>
-                                <InputName>{column.name}</InputName>
+                                <InputName>{`${column.name} ${
+                                    column.required ? '*' : ''
+                                }`}</InputName>
                                 {renderInputValue(column)}
                             </InputContainer>
                         );

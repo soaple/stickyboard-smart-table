@@ -211,10 +211,21 @@ function SmartTable(props) {
 
     function onCreateOrUpdateBtnClick(valueDict) {
         try {
-            Object.keys(valueDict).forEach((key) => {
-                const value = valueDict[key];
-                if (value === '') {
-                    throw new Error(`Please enter ${key}.`);
+            let variables = {};
+            Object.keys(valueDict).forEach((columnName) => {
+                const column = columnDict[columnName];
+                const value = valueDict[columnName];
+
+                if (column.required && value === '') {
+                    throw new Error(`Please enter ${columnName}.`);
+                } else {
+                    if (value) {
+                        variables[columnName] = value;
+                    } else if (column.defaultValue !== undefined) {
+                        variables[columnName] = column.defaultValue;
+                    } else {
+                        variables[columnName] = null;
+                    }
                 }
             });
 
@@ -229,7 +240,7 @@ function SmartTable(props) {
             );
 
             const params = {
-                variables: { ...valueDict },
+                variables: variables,
                 refetchQueries: [
                     {
                         query: gql`
@@ -562,7 +573,9 @@ function SmartTable(props) {
                     } ${title}`}
                     columns={
                         isDialogCreateMode
-                            ? columns.filter((column) => column.required)
+                            ? columns.filter(
+                                  (column) => column.requiredToCreate
+                              )
                             : columns
                     }
                     data={selectedItem}

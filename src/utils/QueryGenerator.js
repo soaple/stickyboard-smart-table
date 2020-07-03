@@ -28,7 +28,7 @@ const QueryGenerator = {
             mutation ${createMutationObject.header}{
                 ${createMutationObject.name}(
                     ${columns
-                        .filter((column) => column.required)
+                        .filter((column) => column.requiredToCreate)
                         .map((column) => {
                             const key = column.name;
                             return `${key}: $${key}`;
@@ -37,9 +37,7 @@ const QueryGenerator = {
                 ) {
                     ${columns
                         .map((column) => {
-                            // if (column.show) {
                             return column.name;
-                            // }
                         })
                         .join('\n')}
                 }
@@ -126,9 +124,7 @@ const QueryGenerator = {
                 ) {
                     ${columns
                         .map((column) => {
-                            // if (column.show) {
                             return column.name;
-                            // }
                         })
                         .join('\n')}
                 }
