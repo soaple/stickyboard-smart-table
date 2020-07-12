@@ -1,3 +1,5 @@
+import ColumnUtil from './ColumnUtil';
+
 const QueryGenerator = {
     generateMutationObject: (mutation) => {
         const elem = mutation.split(/[(,):]+/);
@@ -112,17 +114,21 @@ const QueryGenerator = {
             return '';
         }
 
+        const scalarColumns = columns.filter((column) => {
+            return ColumnUtil.isScalarData(column.type);
+        });
+
         return `
             mutation ${updateMutationObject.header}{
                 ${updateMutationObject.name}(
-                    ${columns
+                    ${scalarColumns
                         .map((column) => {
                             const key = column.name;
                             return `${key}: $${key}`;
                         })
                         .join(', ')}
                 ) {
-                    ${columns
+                    ${scalarColumns
                         .map((column) => {
                             return column.name;
                         })

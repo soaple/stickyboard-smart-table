@@ -1,5 +1,4 @@
 // src/SmartTable.js
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
@@ -17,6 +16,7 @@ import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
 
 import QueryGenerator from './utils/QueryGenerator';
+import ColumnUtil from './utils/ColumnUtil';
 // import QueryManager from './QueryManager';
 import { SearchIcon } from './IconSet';
 
@@ -95,24 +95,13 @@ const FilterOptionsContainer = styled.div`
     align-items: center;
 `;
 
-function isScalarData(columnType) {
-    if (
-        columnType === 'Int' ||
-        columnType === 'String' ||
-        columnType === 'Date'
-    ) {
-        return true;
-    }
-
-    return false;
-}
-
 function SmartTable(props) {
     const {
         title,
         schema,
         customHeaderTitle,
-        customColumnRenderer,
+        customColumnComponent,
+        customMutationComponent,
         customColumnStyle,
         customColumnFormatter,
         customColumns,
@@ -215,6 +204,9 @@ function SmartTable(props) {
             Object.keys(valueDict).forEach((columnName) => {
                 const column = columnDict[columnName];
                 const value = valueDict[columnName];
+
+                if (isDialogCreateMode || column.update) {
+                }
 
                 if (column.required && value === '') {
                     throw new Error(`Please enter ${columnName}.`);
@@ -340,7 +332,7 @@ function SmartTable(props) {
                 <FilterOptions
                     ref={filterOptionsRef}
                     columns={columns.filter((column) => {
-                        return isScalarData(column.type);
+                        return ColumnUtil.isScalarData(column.type);
                     })}
                 />
                 <SimpleButton
@@ -365,7 +357,7 @@ function SmartTable(props) {
                                 Object.keys(headerLabelDict).map(
                                     (columnName, index) => {
                                         const column = columnDict[columnName];
-                                        const isSortable = isScalarData(
+                                        const isSortable = ColumnUtil.isScalarData(
                                             column.type
                                         );
 
@@ -439,15 +431,15 @@ function SmartTable(props) {
                                             const value = row[columnName];
 
                                             if (headerLabelDict[columnName]) {
-                                                let customRenderer;
+                                                let CustomComponent;
                                                 if (
-                                                    customColumnRenderer &&
-                                                    customColumnRenderer[
+                                                    customColumnComponent &&
+                                                    customColumnComponent[
                                                         columnName
                                                     ]
                                                 ) {
-                                                    customRenderer =
-                                                        customColumnRenderer[
+                                                    CustomComponent =
+                                                        customColumnComponent[
                                                             columnName
                                                         ];
                                                 }
@@ -490,10 +482,10 @@ function SmartTable(props) {
                                                         value
                                                     ).toLocaleString();
                                                 } else if (
-                                                    !isScalarData(
+                                                    !ColumnUtil.isScalarData(
                                                         column.type
                                                     ) &&
-                                                    !customRenderer
+                                                    !CustomComponent
                                                 ) {
                                                     renderValue = JSON.stringify(
                                                         value
@@ -504,11 +496,15 @@ function SmartTable(props) {
                                                     <TableData
                                                         key={`data-${index}`}
                                                         style={customStyle}>
-                                                        {customRenderer
-                                                            ? customRenderer(
-                                                                  renderValue
-                                                              )
-                                                            : renderValue}
+                                                        {CustomComponent ? (
+                                                            <CustomComponent
+                                                                value={
+                                                                    renderValue
+                                                                }
+                                                            />
+                                                        ) : (
+                                                            renderValue
+                                                        )}
                                                     </TableData>
                                                 );
                                             }
@@ -565,7 +561,7 @@ function SmartTable(props) {
                 />
             </TableFooter>
 
-            {/* Create Dialog */}
+            {/* Create or Update Dialog */}
             {showDialog && (
                 <Dialog
                     title={`${
@@ -578,6 +574,8 @@ function SmartTable(props) {
                               )
                             : columns
                     }
+                    customColumnComponent={customColumnComponent}
+                    customMutationComponent={customMutationComponent}
                     data={selectedItem}
                     negativeBtnLabel={'Cancel'}
                     onNegativeBtnClick={() => {

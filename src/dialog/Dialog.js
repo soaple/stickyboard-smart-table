@@ -142,6 +142,8 @@ function Dialog(props) {
     const {
         title,
         columns,
+        customColumnComponent,
+        customMutationComponent,
         data,
         negativeBtnLabel,
         onNegativeBtnClick,
@@ -171,7 +173,13 @@ function Dialog(props) {
     const [valueDict, setValueDict] = useState(initialValueDict);
 
     function renderInputValue(column) {
-        if (column.type === 'String') {
+        if (customMutationComponent && customMutationComponent[column.name]) {
+            const CustomComponent = customMutationComponent[column.name];
+            return <CustomComponent value={valueDict[column.name]} />;
+        } else if (customColumnComponent && customColumnComponent[column.name]) {
+            const CustomComponent = customColumnComponent[column.name];
+            return <CustomComponent value={valueDict[column.name]} />;
+        } else if (column.type === 'String') {
             return (
                 <InputValueTextarea
                     value={valueDict[column.name]}
