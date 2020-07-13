@@ -175,10 +175,23 @@ function Dialog(props) {
     function renderInputValue(column) {
         if (customMutationComponent && customMutationComponent[column.name]) {
             const CustomComponent = customMutationComponent[column.name];
-            return <CustomComponent value={valueDict[column.name]} />;
-        } else if (customColumnComponent && customColumnComponent[column.name]) {
+            return (
+                <CustomComponent
+                    valueDict={valueDict}
+                    value={valueDict[column.name]}
+                />
+            );
+        } else if (
+            customColumnComponent &&
+            customColumnComponent[column.name]
+        ) {
             const CustomComponent = customColumnComponent[column.name];
-            return <CustomComponent value={valueDict[column.name]} />;
+            return (
+                <CustomComponent
+                    valueDict={valueDict}
+                    value={valueDict[column.name]}
+                />
+            );
         } else if (column.type === 'String') {
             return (
                 <InputValueTextarea
