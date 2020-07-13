@@ -135,7 +135,7 @@ function SmartTable(props) {
 
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
-    const [selectedItem, setSelectedItem] = useState(null);
+    const [selectedItemIndex, setSelectedItemIndex] = useState(null);
     const [showDialog, setShowDialog] = useState(false);
     const [orderColumn, setOrderColumn] = useState(
         initialOrderColumn ||
@@ -255,10 +255,10 @@ function SmartTable(props) {
     }
 
     useEffect(() => {
-        if (selectedItem && !showDialog) {
-            setShowDialog(true);
+        if (!showDialog) {
+            setSelectedItemIndex(null);
         }
-    }, [selectedItem]);
+    }, [showDialog]);
 
     // if (loading && !data) {
     if (loading && filterOptions.length === 0) {
@@ -283,7 +283,7 @@ function SmartTable(props) {
     const offset = Math.ceil((currentPage - 1) * rowsPerPage);
     const emptyRows = rowsPerPage - rows.length;
 
-    const isDialogCreateMode = selectedItem === null;
+    const isDialogCreateMode = selectedItemIndex === null;
 
     function onHeaderDataClick(columnName) {
         if (orderColumn === columnName) {
@@ -422,7 +422,8 @@ function SmartTable(props) {
                                 <TableRow
                                     key={index}
                                     onClick={() => {
-                                        setSelectedItem(row);
+                                        setSelectedItemIndex(index);
+                                        setShowDialog(true);
                                     }}>
                                     {Object.keys(row).map(
                                         (columnName, index) => {
@@ -576,14 +577,14 @@ function SmartTable(props) {
                     }
                     customColumnComponent={customColumnComponent}
                     customMutationComponent={customMutationComponent}
-                    data={selectedItem}
+                    data={rows[selectedItemIndex]}
                     negativeBtnLabel={'Cancel'}
                     onNegativeBtnClick={() => {
-                        setSelectedItem(null);
                         setShowDialog(false);
                     }}
                     positiveBtnLabel={isDialogCreateMode ? 'Create' : 'Update'}
                     onPositiveBtnClick={onCreateOrUpdateBtnClick}
+                    refetch={() => refetch()}
                 />
             )}
         </TableWrapper>

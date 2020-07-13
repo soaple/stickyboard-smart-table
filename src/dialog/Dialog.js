@@ -149,6 +149,7 @@ function Dialog(props) {
         onNegativeBtnClick,
         positiveBtnLabel,
         onPositiveBtnClick,
+        refetch,
     } = props;
 
     const initialValueDict = columns.reduce((acc, column) => {
@@ -177,8 +178,9 @@ function Dialog(props) {
             const CustomComponent = customMutationComponent[column.name];
             return (
                 <CustomComponent
-                    valueDict={valueDict}
-                    value={valueDict[column.name]}
+                    data={data}
+                    value={data[column.name]}
+                    refetch={refetch}
                 />
             );
         } else if (
@@ -188,8 +190,9 @@ function Dialog(props) {
             const CustomComponent = customColumnComponent[column.name];
             return (
                 <CustomComponent
-                    valueDict={valueDict}
-                    value={valueDict[column.name]}
+                    data={data}
+                    value={data[column.name]}
+                    refetch={refetch}
                 />
             );
         } else if (column.type === 'String') {
