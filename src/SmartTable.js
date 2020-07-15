@@ -107,6 +107,7 @@ function SmartTable(props) {
         customColumns,
         initialOrderColumn,
         initialOrderMethod,
+        customOnClickRow,
     } = props;
     const { columns } = schema;
 
@@ -422,8 +423,12 @@ function SmartTable(props) {
                                 <TableRow
                                     key={index}
                                     onClick={() => {
-                                        setSelectedItemIndex(index);
-                                        setShowDialog(true);
+                                        if (customOnClickRow) {
+                                            customOnClickRow(row);
+                                        } else {
+                                            setSelectedItemIndex(index);
+                                            setShowDialog(true);
+                                        }
                                     }}>
                                     {Object.keys(row).map(
                                         (columnName, index) => {
