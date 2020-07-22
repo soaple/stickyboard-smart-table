@@ -183,18 +183,6 @@ function Dialog(props) {
                     refetch={refetch}
                 />
             );
-        } else if (
-            customColumnComponent &&
-            customColumnComponent[column.name]
-        ) {
-            const CustomComponent = customColumnComponent[column.name];
-            return (
-                <CustomComponent
-                    data={data}
-                    value={data[column.name]}
-                    refetch={refetch}
-                />
-            );
         } else if (column.type === 'String') {
             return (
                 <InputValueTextarea
@@ -240,6 +228,19 @@ function Dialog(props) {
                             [column.name]: dateTime,
                         });
                     }}
+                />
+            );
+        } else if (
+            initialValueDict[column.name] &&
+            customColumnComponent &&
+            customColumnComponent[column.name]
+        ) {
+            const CustomComponent = customColumnComponent[column.name];
+            return (
+                <CustomComponent
+                    data={data}
+                    value={data[column.name]}
+                    refetch={refetch}
                 />
             );
         } else {
