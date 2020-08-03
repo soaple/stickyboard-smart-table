@@ -181,6 +181,12 @@ function Dialog(props) {
                     data={data}
                     value={data[column.name]}
                     refetch={refetch}
+                    changeValue={(newValue) => {
+                        setValueDict({
+                            ...valueDict,
+                            [column.name]: newValue,
+                        });
+                    }}
                 />
             );
         } else if (column.type === 'String') {
