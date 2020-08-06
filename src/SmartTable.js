@@ -301,6 +301,173 @@ function SmartTable(props) {
         }
     }
 
+    const renderTableHeader = () => {
+        return (
+            <TableHead>
+                <TableHeader>
+                    {rows.length > 0 &&
+                        Object.keys(headerLabelDict).map(
+                            (columnName, index) => {
+                                const column = columnDict[columnName];
+                                const isSortable = ColumnUtil.isScalarData(
+                                    column.type
+                                );
+
+                                return (
+                                    <TableHeaderData key={`header-${index}`}>
+                                        <Button
+                                            isClickable={isSortable}
+                                            onClick={() => {
+                                                if (isSortable) {
+                                                    onHeaderDataClick(
+                                                        columnName
+                                                    );
+                                                } else {
+                                                    alert(
+                                                        'This is not a sortable column!'
+                                                    );
+                                                }
+                                            }}
+                                            title={
+                                                headerLabelDict[columnName] ||
+                                                columnName.toUpperCase()
+                                            }
+                                            isOrderColumn={
+                                                orderColumn === columnName
+                                            }
+                                            orderMethod={orderMethod}
+                                        />
+                                    </TableHeaderData>
+                                );
+                            }
+                        )}
+
+                    {/* Header for custom columns */}
+                    {customColumns &&
+                        customColumns.length > 0 &&
+                        customColumns.map((customColumn, index) => {
+                            return (
+                                <TableHeaderData key={`custom-header-${index}`}>
+                                    <Button
+                                        onClick={() => {
+                                            alert(
+                                                `${customColumn.headerTitle} clicked!`
+                                            );
+                                        }}
+                                        title={customColumn.headerTitle}
+                                    />
+                                </TableHeaderData>
+                            );
+                        })}
+                </TableHeader>
+            </TableHead>
+        );
+    };
+
+    const renderTableBody = () => {
+        return (
+            <TableBody>
+                {rows.map((row, index) => renderTableRow(row, index))}
+
+                {emptyRows > 0 && (
+                    <TableRowEmpty
+                        height={`${(emptyRows / rowsPerPage) * 100}%`}
+                    />
+                )}
+            </TableBody>
+        );
+    };
+
+    const renderTableRow = (row, index) => {
+        return (
+            <TableRow
+                key={index}
+                onClick={() => {
+                    if (customOnClickRow) {
+                        customOnClickRow(row);
+                    } else {
+                        setSelectedItemIndex(index);
+                        setShowDialog(true);
+                    }
+                }}>
+                {Object.keys(row).map((columnName, index) => {
+                    const column = columnDict[columnName];
+                    const value = row[columnName];
+
+                    if (headerLabelDict[columnName]) {
+                        let CustomComponent;
+                        if (
+                            customColumnComponent &&
+                            customColumnComponent[columnName]
+                        ) {
+                            CustomComponent = customColumnComponent[columnName];
+                        }
+
+                        let customStyle = {};
+                        if (
+                            customColumnStyle &&
+                            customColumnStyle[columnName]
+                        ) {
+                            customStyle = customColumnStyle[columnName];
+                        }
+
+                        let customFormatter = null;
+                        if (
+                            customColumnFormatter &&
+                            customColumnFormatter[columnName]
+                        ) {
+                            customFormatter = customColumnFormatter[columnName];
+                        }
+
+                        let renderValue = value;
+                        if (customFormatter) {
+                            renderValue = customFormatter(value);
+                        } else if (column.type === 'Date') {
+                            renderValue = new Date(value).toLocaleString();
+                        } else if (
+                            !ColumnUtil.isScalarData(column.type) &&
+                            !CustomComponent
+                        ) {
+                            renderValue = JSON.stringify(value);
+                        }
+
+                        return (
+                            <TableData
+                                key={`data-${index}`}
+                                style={customStyle}>
+                                {CustomComponent ? (
+                                    <CustomComponent value={renderValue} />
+                                ) : (
+                                    renderValue
+                                )}
+                            </TableData>
+                        );
+                    }
+                })}
+
+                {/* Data for custom columns */}
+                {customColumns &&
+                    customColumns.length > 0 &&
+                    customColumns.map((customColumn, index) => {
+                        const Component = customColumn.component;
+
+                        if (!Component) {
+                            return null;
+                        }
+
+                        return (
+                            <TableData key={`custom-data-${index}`}>
+                                <Component
+                                    item={row}
+                                    refetch={() => refetch()}
+                                />
+                            </TableData>
+                        );
+                    })}
+            </TableRow>
+        );
+    };
+
     return (
         <TableWrapper>
             {/* Table Toolbar */}
@@ -352,206 +519,10 @@ function SmartTable(props) {
             <TableContent>
                 <Table>
                     {/* Table Header */}
-                    <TableHead>
-                        <TableHeader>
-                            {rows.length > 0 &&
-                                Object.keys(headerLabelDict).map(
-                                    (columnName, index) => {
-                                        const column = columnDict[columnName];
-                                        const isSortable = ColumnUtil.isScalarData(
-                                            column.type
-                                        );
-
-                                        return (
-                                            <TableHeaderData
-                                                key={`header-${index}`}>
-                                                <Button
-                                                    isClickable={isSortable}
-                                                    onClick={() => {
-                                                        if (isSortable) {
-                                                            onHeaderDataClick(
-                                                                columnName
-                                                            );
-                                                        } else {
-                                                            alert(
-                                                                'This is not a sortable column!'
-                                                            );
-                                                        }
-                                                    }}
-                                                    title={
-                                                        headerLabelDict[
-                                                            columnName
-                                                        ] ||
-                                                        columnName.toUpperCase()
-                                                    }
-                                                    isOrderColumn={
-                                                        orderColumn ===
-                                                        columnName
-                                                    }
-                                                    orderMethod={orderMethod}
-                                                />
-                                            </TableHeaderData>
-                                        );
-                                    }
-                                )}
-
-                            {/* Header for custom columns */}
-                            {customColumns &&
-                                customColumns.length > 0 &&
-                                customColumns.map((customColumn, index) => {
-                                    return (
-                                        <TableHeaderData
-                                            key={`custom-header-${index}`}>
-                                            <Button
-                                                onClick={() => {
-                                                    alert(
-                                                        `${customColumn.headerTitle} clicked!`
-                                                    );
-                                                }}
-                                                title={customColumn.headerTitle}
-                                            />
-                                        </TableHeaderData>
-                                    );
-                                })}
-                        </TableHeader>
-                    </TableHead>
+                    {renderTableHeader()}
 
                     {/* Table Body */}
-                    <TableBody>
-                        {rows.map((row, index) => {
-                            return (
-                                <TableRow
-                                    key={index}
-                                    onClick={() => {
-                                        if (customOnClickRow) {
-                                            customOnClickRow(row);
-                                        } else {
-                                            setSelectedItemIndex(index);
-                                            setShowDialog(true);
-                                        }
-                                    }}>
-                                    {Object.keys(row).map(
-                                        (columnName, index) => {
-                                            const column =
-                                                columnDict[columnName];
-                                            const value = row[columnName];
-
-                                            if (headerLabelDict[columnName]) {
-                                                let CustomComponent;
-                                                if (
-                                                    customColumnComponent &&
-                                                    customColumnComponent[
-                                                        columnName
-                                                    ]
-                                                ) {
-                                                    CustomComponent =
-                                                        customColumnComponent[
-                                                            columnName
-                                                        ];
-                                                }
-
-                                                let customStyle = {};
-                                                if (
-                                                    customColumnStyle &&
-                                                    customColumnStyle[
-                                                        columnName
-                                                    ]
-                                                ) {
-                                                    customStyle =
-                                                        customColumnStyle[
-                                                            columnName
-                                                        ];
-                                                }
-
-                                                let customFormatter = null;
-                                                if (
-                                                    customColumnFormatter &&
-                                                    customColumnFormatter[
-                                                        columnName
-                                                    ]
-                                                ) {
-                                                    customFormatter =
-                                                        customColumnFormatter[
-                                                            columnName
-                                                        ];
-                                                }
-
-                                                let renderValue = value;
-                                                if (customFormatter) {
-                                                    renderValue = customFormatter(
-                                                        value
-                                                    );
-                                                } else if (
-                                                    column.type === 'Date'
-                                                ) {
-                                                    renderValue = new Date(
-                                                        value
-                                                    ).toLocaleString();
-                                                } else if (
-                                                    !ColumnUtil.isScalarData(
-                                                        column.type
-                                                    ) &&
-                                                    !CustomComponent
-                                                ) {
-                                                    renderValue = JSON.stringify(
-                                                        value
-                                                    );
-                                                }
-
-                                                return (
-                                                    <TableData
-                                                        key={`data-${index}`}
-                                                        style={customStyle}>
-                                                        {CustomComponent ? (
-                                                            <CustomComponent
-                                                                value={
-                                                                    renderValue
-                                                                }
-                                                            />
-                                                        ) : (
-                                                            renderValue
-                                                        )}
-                                                    </TableData>
-                                                );
-                                            }
-                                        }
-                                    )}
-
-                                    {/* Data for custom columns */}
-                                    {customColumns &&
-                                        customColumns.length > 0 &&
-                                        customColumns.map(
-                                            (customColumn, index) => {
-                                                const Component =
-                                                    customColumn.component;
-
-                                                if (!Component) {
-                                                    return null;
-                                                }
-
-                                                return (
-                                                    <TableData
-                                                        key={`custom-data-${index}`}>
-                                                        <Component
-                                                            item={row}
-                                                            refetch={() =>
-                                                                refetch()
-                                                            }
-                                                        />
-                                                    </TableData>
-                                                );
-                                            }
-                                        )}
-                                </TableRow>
-                            );
-                        })}
-
-                        {emptyRows > 0 && (
-                            <TableRowEmpty
-                                height={`${(emptyRows / rowsPerPage) * 100}%`}
-                            />
-                        )}
-                    </TableBody>
+                    {renderTableBody()}
                 </Table>
             </TableContent>
 
