@@ -73,7 +73,7 @@ function FilterOptionItem(props) {
                         underlineShow={false}
                         onChange={(dateTime) => {
                             onValueChange([
-                                dateTime,
+                                dateTime.getTime(),
                                 filterOption.filterColumnValue[1],
                             ]);
                         }}
@@ -94,7 +94,7 @@ function FilterOptionItem(props) {
                         onChange={(dateTime) => {
                             onValueChange([
                                 filterOption.filterColumnValue[0],
-                                dateTime,
+                                dateTime.getTime(),
                             ]);
                         }}
                     />

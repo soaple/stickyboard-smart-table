@@ -44,9 +44,8 @@ const generateOption = (
     filterColumnValue = ''
 ) => {
     if (filterDataType === 'Date' && filterColumnValue === '') {
-        const defaultEndDate = new Date();
-        const defaultStartDate =
-            defaultEndDate.getTime() - 7 * 24 * 60 * 60 * 1000;
+        const defaultEndDate = new Date().getTime();
+        const defaultStartDate = defaultEndDate - 7 * 24 * 60 * 60 * 1000;
 
         return {
             filterDataType: filterDataType,
