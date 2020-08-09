@@ -43,11 +43,22 @@ const generateOption = (
     filterColumnName = '',
     filterColumnValue = ''
 ) => {
-    return {
-        filterDataType: filterDataType,
-        filterColumnName: filterColumnName,
-        filterColumnValue: filterColumnValue,
-    };
+    if (filterDataType === 'Date' && filterColumnValue === '') {
+        const defaultEndDate = new Date().getTime();
+        const defaultStartDate = defaultEndDate - 7 * 24 * 60 * 60 * 1000;
+
+        return {
+            filterDataType: filterDataType,
+            filterColumnName: filterColumnName,
+            filterColumnValue: [defaultStartDate, defaultEndDate],
+        };
+    } else {
+        return {
+            filterDataType: filterDataType,
+            filterColumnName: filterColumnName,
+            filterColumnValue: filterColumnValue,
+        };
+    }
 };
 
 class FilterOptions extends React.Component {
@@ -88,6 +99,7 @@ class FilterOptions extends React.Component {
                                         selectedColumn.type,
                                         selectedColumn.name
                                     );
+                                    console.log(options, newOptions);
                                     this.setState({ options: newOptions });
                                 }}
                                 onValueChange={(value) => {
