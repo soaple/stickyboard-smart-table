@@ -261,23 +261,11 @@ function SmartTable(props) {
         }
     }, [showDialog]);
 
-    // if (loading && !data) {
-    if (loading && filterOptions.length === 0) {
-        return (
-            <LoadingWrapper>
-                <LoadingText>Loading...</LoadingText>
-            </LoadingWrapper>
-        );
-    }
-
-    const { count, rows } = data[readItemsQueryName];
-
-    if (error || !rows) {
-        return (
-            <ErrorWrapper>
-                <ErrorText>Error</ErrorText>
-            </ErrorWrapper>
-        );
+    let count = 0;
+    let rows = [];
+    if (data) {
+        count = data[readItemsQueryName].count;
+        rows = data[readItemsQueryName].rows;
     }
 
     const totalPageCount = Math.ceil(count / rowsPerPage);
@@ -300,6 +288,53 @@ function SmartTable(props) {
             setOrderMethod(OrderMethod.ASC);
         }
     }
+
+    const renderTable = () => {
+        // if (loading && (!data || filterOptions.length === 0)) {
+        if (loading) {
+            return (
+                <LoadingWrapper>
+                    <LoadingText>Loading...</LoadingText>
+                </LoadingWrapper>
+            )
+        }
+
+        // if (error || !rows) {
+        if (error) {
+            return (
+                <ErrorWrapper>
+                    <ErrorText>Error</ErrorText>
+                </ErrorWrapper>
+            );
+        }
+
+        return (
+            <>
+                {/* Table Content (Horizontally scrollable) */}
+                <TableContent>
+                    <Table>
+                        {/* Table Header */}
+                        {renderTableHeader()}
+
+                        {/* Table Body */}
+                        {renderTableBody()}
+                    </Table>
+                </TableContent>
+
+                {/* Table Footer */}
+                <TableFooter>
+                    <TablePagination
+                        totalPage={totalPageCount}
+                        currentPage={currentPage}
+                        rowsPerPage={rowsPerPage}
+                        onPageChange={(page) => {
+                            setCurrentPage(page);
+                        }}
+                    />
+                </TableFooter>
+            </>
+        );
+    };
 
     const renderTableHeader = () => {
         return (
@@ -515,28 +550,7 @@ function SmartTable(props) {
                 </SimpleButton>
             </FilterOptionsContainer>
 
-            {/* Table Content (Horizontally scrollable) */}
-            <TableContent>
-                <Table>
-                    {/* Table Header */}
-                    {renderTableHeader()}
-
-                    {/* Table Body */}
-                    {renderTableBody()}
-                </Table>
-            </TableContent>
-
-            {/* Table Footer */}
-            <TableFooter>
-                <TablePagination
-                    totalPage={totalPageCount}
-                    currentPage={currentPage}
-                    rowsPerPage={rowsPerPage}
-                    onPageChange={(page) => {
-                        setCurrentPage(page);
-                    }}
-                />
-            </TableFooter>
+            {renderTable()}
 
             {/* Create or Update Dialog */}
             {showDialog && (
