@@ -154,7 +154,7 @@ function Dialog(props) {
 
     const initialValueDict = columns.reduce((acc, column) => {
         const columnName = column.name;
-        if (data && data[columnName]) {
+        if (data && data[columnName] !== undefined) {
             if (column.type === 'String') {
                 acc[columnName] = data[columnName];
             } else if (column.type === 'Int') {
@@ -179,7 +179,7 @@ function Dialog(props) {
             return (
                 <CustomComponent
                     data={data}
-                    value={data[column.name]}
+                    value={valueDict[column.name]}
                     refetch={refetch}
                     changeValue={(newValue) => {
                         setValueDict({
