@@ -211,6 +211,9 @@ function SmartTable(props) {
 
                 if (column.required && value === '') {
                     throw new Error(`Please enter ${columnName}.`);
+                } else if (column.extractor && typeof value === 'object') {
+                    const { subfieldName, targetParamName } = column.extractor;
+                    variables[targetParamName] = value[subfieldName];
                 } else {
                     if (value) {
                         variables[columnName] = value;
@@ -296,7 +299,7 @@ function SmartTable(props) {
                 <LoadingWrapper>
                     <LoadingText>Loading...</LoadingText>
                 </LoadingWrapper>
-            )
+            );
         }
 
         // if (error || !rows) {

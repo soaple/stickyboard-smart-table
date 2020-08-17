@@ -32,7 +32,10 @@ const QueryGenerator = {
                     ${columns
                         .filter((column) => column.requiredToCreate)
                         .map((column) => {
-                            const key = column.name;
+                            let key = column.name;
+                            if (column.extractor) {
+                                key = column.extractor.targetParamName;
+                            }
                             return `${key}: $${key}`;
                         })
                         .join(', ')}
@@ -118,21 +121,24 @@ const QueryGenerator = {
             return '';
         }
 
-        const scalarColumns = columns.filter((column) => {
-            return ColumnUtil.isScalarData(column.type);
+        const targetColumns = columns.filter((column) => {
+            return ColumnUtil.isScalarData(column.type) || column.extractor;
         });
 
         return `
             mutation ${updateMutationObject.header}{
                 ${updateMutationObject.name}(
-                    ${scalarColumns
+                    ${targetColumns
                         .map((column) => {
-                            const key = column.name;
+                            let key = column.name;
+                            if (column.extractor) {
+                                key = column.extractor.targetParamName;
+                            }
                             return `${key}: $${key}`;
                         })
                         .join(', ')}
                 ) {
-                    ${scalarColumns
+                    ${targetColumns
                         .map((column) => {
                             if (column.subfields) {
                                 return `${column.name} ${column.subfields}`;
