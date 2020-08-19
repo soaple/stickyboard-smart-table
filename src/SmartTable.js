@@ -107,6 +107,7 @@ function SmartTable(props) {
         customColumns,
         initialOrderColumn,
         initialOrderMethod,
+        hideColumn,
         customOnClickRow,
     } = props;
     const { columns } = schema;
@@ -350,6 +351,10 @@ function SmartTable(props) {
                     {rows.length > 0 &&
                         Object.keys(headerLabelDict).map(
                             (columnName, index) => {
+                                if (hideColumn && hideColumn[columnName]) {
+                                    return null;
+                                }
+
                                 const column = columnDict[columnName];
                                 const isSortable = ColumnUtil.isScalarData(
                                     column.type
@@ -433,6 +438,10 @@ function SmartTable(props) {
                     }
                 }}>
                 {Object.keys(row).map((columnName, index) => {
+                    if (hideColumn && hideColumn[columnName]) {
+                        return null;
+                    }
+
                     const column = columnDict[columnName];
                     const value = row[columnName];
 
