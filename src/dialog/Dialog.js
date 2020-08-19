@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
     // DatePicker,
@@ -152,26 +152,33 @@ function Dialog(props) {
         refetch,
     } = props;
 
-    const initialValueDict = columns.reduce((acc, column) => {
-        const columnName = column.name;
-        if (data && data[columnName] !== undefined) {
-            if (column.type === 'String') {
-                acc[columnName] = data[columnName];
-            } else if (column.type === 'Int') {
-                acc[columnName] = new Number(data[columnName]);
-            } else if (column.type === 'Date') {
-                // acc[columnName] = new Date(data[columnName]);
-                acc[columnName] = data[columnName];
+    const getValueDictFromData = () => {
+        return columns.reduce((acc, column) => {
+            const columnName = column.name;
+            if (data && data[columnName] !== undefined) {
+                if (column.type === 'String') {
+                    acc[columnName] = data[columnName];
+                } else if (column.type === 'Int') {
+                    acc[columnName] = new Number(data[columnName]);
+                } else if (column.type === 'Date') {
+                    // acc[columnName] = new Date(data[columnName]);
+                    acc[columnName] = data[columnName];
+                } else {
+                    acc[columnName] = data[columnName];
+                }
             } else {
-                acc[columnName] = data[columnName];
+                acc[columnName] = '';
             }
-        } else {
-            acc[columnName] = '';
-        }
 
-        return acc;
-    }, {});
-    const [valueDict, setValueDict] = useState(initialValueDict);
+            return acc;
+        }, {});
+    };
+
+    useEffect(() => {
+        setValueDict(getValueDictFromData());
+    }, [JSON.stringify(data)]);
+
+    const [valueDict, setValueDict] = useState(getValueDictFromData());
 
     function renderInputValue(column) {
         if (customMutationComponent && customMutationComponent[column.name]) {
@@ -237,7 +244,7 @@ function Dialog(props) {
                 />
             );
         } else if (
-            initialValueDict[column.name] &&
+            valueDict[column.name] &&
             customColumnComponent &&
             customColumnComponent[column.name]
         ) {

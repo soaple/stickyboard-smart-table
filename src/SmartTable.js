@@ -209,11 +209,15 @@ function SmartTable(props) {
                 if (isDialogCreateMode || column.update) {
                 }
 
-                if (column.required && value === '') {
+                if (column.required && (value === '' || value === null)) {
                     throw new Error(`Please enter ${columnName}.`);
-                } else if (column.extractor && typeof value === 'object') {
+                } else if (column.extractor) {
                     const { subfieldName, targetParamName } = column.extractor;
-                    variables[targetParamName] = value[subfieldName];
+                    if (value === null) {
+                        variables[targetParamName] = null;
+                    } else if (typeof value === 'object') {
+                        variables[targetParamName] = value[subfieldName];
+                    }
                 } else {
                     if (value) {
                         variables[columnName] = value;
