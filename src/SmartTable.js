@@ -299,7 +299,7 @@ function SmartTable(props) {
 
     const renderTable = () => {
         // if (loading && (!data || filterOptions.length === 0)) {
-        if (loading) {
+        if (loading && !rows) {
             return (
                 <LoadingWrapper>
                     <LoadingText>Loading...</LoadingText>
