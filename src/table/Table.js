@@ -31,7 +31,9 @@ export const TableToolbarTitle = styled.div`
 
 export const TableContent = styled.div`
     width: 100%;
-    height: calc(100% - ${TOOLBAR_HEIGHT + FOOTER_HEIGHT}px);
+    height: calc(
+        100% - ${TOOLBAR_HEIGHT + HEADER_HEIGHT + FOOTER_HEIGHT + 6}px
+    );
     overflow-x: auto;
 `;
 
@@ -83,7 +85,7 @@ export const TableRow = styled.tr`
 `;
 
 export const TableRowEmpty = styled.tr`
-    height: ${props => props.height};
+    height: ${(props) => props.height};
 `;
 
 export const TableData = styled.td`
