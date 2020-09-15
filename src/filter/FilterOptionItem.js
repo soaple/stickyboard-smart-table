@@ -39,6 +39,7 @@ const DateDivider = styled.div`
 function FilterOptionItem(props) {
     const {
         columns,
+        headerLabelDict,
         filterOption,
         onColumnChange,
         onValueChange,
@@ -134,7 +135,7 @@ function FilterOptionItem(props) {
                             const columnName = column.name;
                             return (
                                 <MenuItem key={columnName} value={columnName}>
-                                    {columnName}
+                                    {headerLabelDict[columnName]}
                                 </MenuItem>
                             );
                         })}

@@ -553,6 +553,7 @@ function SmartTable(props) {
                     columns={columns.filter((column) => {
                         return ColumnUtil.isScalarData(column.type);
                     })}
+                    headerLabelDict={headerLabelDict}
                 />
                 <SimpleButton
                     onClick={() => {

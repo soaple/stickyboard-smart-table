@@ -77,7 +77,7 @@ class FilterOptions extends React.Component {
 
     render() {
         const { options } = this.state;
-        const { columns } = this.props;
+        const { columns, headerLabelDict } = this.props;
 
         return (
             <Wrapper>
@@ -92,6 +92,7 @@ class FilterOptions extends React.Component {
                             <FilterOptionItem
                                 key={index}
                                 columns={columns}
+                                headerLabelDict={headerLabelDict}
                                 filterOption={option}
                                 onColumnChange={(selectedColumn) => {
                                     let newOptions = [...options];
