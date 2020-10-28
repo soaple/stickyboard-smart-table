@@ -67,14 +67,24 @@ const QueryGenerator = {
         let filterConditions = '';
         if (filterOptions.length > 0) {
             let filterOptionArray = filterOptions.map((filterOption) => {
-                return `
-                    {
-                        filterDataType: "${filterOption.filterDataType}"
-                        filterColumnName: "${filterOption.filterColumnName}"
-                        filterColumnKey: "${filterOption.filterColumnKey}"
-                        filterColumnValue: "${filterOption.filterColumnValue}"
-                    }
-                `;
+                if (filterOption.filterColumnKey) {
+                    return `
+                        {
+                            filterDataType: "${filterOption.filterDataType}"
+                            filterColumnName: "${filterOption.filterColumnName}"
+                            filterColumnKey: "${filterOption.filterColumnKey}"
+                            filterColumnValue: "${filterOption.filterColumnValue}"
+                        }
+                    `;
+                } else {
+                    return `
+                        {
+                            filterDataType: "${filterOption.filterDataType}"
+                            filterColumnName: "${filterOption.filterColumnName}"
+                            filterColumnValue: "${filterOption.filterColumnValue}"
+                        }
+                    `;
+                }
             });
 
             filterConditions = `,
