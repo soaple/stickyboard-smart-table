@@ -125,7 +125,7 @@ function FilterOptionItem(props) {
             <SelectContainer>
                 <StyledFormControl variant="outlined">
                     <Select
-                        value={headerLabelDict[filterOption.filterColumnName]}
+                        value={filterOption.filterColumnName}
                         onChange={(event) => {
                             const columnName = event.target.value;
                             const selectedColumn = columnDict[columnName];
