@@ -71,6 +71,7 @@ const QueryGenerator = {
                     {
                         filterDataType: "${filterOption.filterDataType}"
                         filterColumnName: "${filterOption.filterColumnName}"
+                        filterColumnKey: "${filterOption.filterColumnKey}"
                         filterColumnValue: "${filterOption.filterColumnValue}"
                     }
                 `;

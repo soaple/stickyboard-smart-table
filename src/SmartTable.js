@@ -271,7 +271,7 @@ function SmartTable(props) {
 
     let count = 0;
     let rows = [];
-    if (data) {
+    if (data && data[readItemsQueryName]) {
         count = data[readItemsQueryName].count;
         rows = data[readItemsQueryName].rows;
     }

@@ -41,6 +41,7 @@ const FilterOptionItemContainer = styled.div`
 const generateOption = (
     filterDataType = '',
     filterColumnName = '',
+    filterColumnKey = null,
     filterColumnValue = ''
 ) => {
     if (filterDataType === 'Date' && filterColumnValue === '') {
@@ -50,12 +51,14 @@ const generateOption = (
         return {
             filterDataType: filterDataType,
             filterColumnName: filterColumnName,
+            filterColumnKey: filterColumnKey,
             filterColumnValue: [defaultStartDate, defaultEndDate],
         };
     } else {
         return {
             filterDataType: filterDataType,
             filterColumnName: filterColumnName,
+            filterColumnKey: filterColumnKey,
             filterColumnValue: filterColumnValue,
         };
     }
@@ -98,9 +101,9 @@ class FilterOptions extends React.Component {
                                     let newOptions = [...options];
                                     newOptions[index] = generateOption(
                                         selectedColumn.type,
-                                        selectedColumn.name
+                                        selectedColumn.name,
+                                        selectedColumn.key
                                     );
-                                    console.log(options, newOptions);
                                     this.setState({ options: newOptions });
                                 }}
                                 onValueChange={(value) => {
@@ -108,6 +111,7 @@ class FilterOptions extends React.Component {
                                     newOptions[index] = generateOption(
                                         option.filterDataType,
                                         option.filterColumnName,
+                                        option.filterColumnKey,
                                         value
                                     );
                                     this.setState({ options: newOptions });
@@ -129,7 +133,8 @@ class FilterOptions extends React.Component {
                                 ...options,
                                 generateOption(
                                     columns[0].type,
-                                    columns[0].name
+                                    columns[0].name,
+                                    columns[0].key
                                 ),
                             ],
                         });
